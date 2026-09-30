@@ -1,0 +1,61 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageSectionRenderer from '../components/sections/PageSectionRenderer.astro';
+import ProductCard from '../components/product/ProductCard.astro';
+import Icon from '../components/ui/Icon.astro';
+import { getSiteSettings, getPageBySlug, getPageSections, getFeaturedProducts, getFaqs } from '../lib/data';
+import { buildSeo } from '../lib/seo';
+
+const settings = await getSiteSettings();
+const page = await getPageBySlug('home');
+const sections = await getPageSections('home');
+const featuredProducts = await getFeaturedProducts(4);
+const faqs = await getFaqs();
+const siteUrl = import.meta.env.PUBLIC_SITE_URL || 'https://uqaabcarpet.com';
+const seo = buildSeo(page, settings, siteUrl, '/');
+---
+
+<BaseLayout seo={seo} settings={settings}>
+  {sections.map((section) => (<PageSectionRenderer section={section} />))}
+
+  {featuredProducts.length > 0 && (
+    <section class="section">
+      <div class="container">
+        <div class="section__header">
+          <h2 class="section__heading">Featured Carpets</h2>
+          <a href="/products" class="btn btn-ghost">View All <Icon name="arrow-right" size={18} /></a>
+        </div>
+        <div class="grid grid--4">
+          {featuredProducts.map((product) => (<ProductCard product={product} />))}
+        </div>
+      </div>
+    </section>
+  )}
+
+  {faqs.length > 0 && (
+    <section class="section bg-ivory-warm">
+      <div class="container">
+        <h2 class="section__heading text-center">Common Questions</h2>
+        <div class="faq-teaser">
+          {faqs.slice(0, 3).map((faq) => (
+            <div class="faq-teaser__item">
+              <h3 class="faq-teaser__q">{faq.question}</h3>
+              <p class="faq-teaser__a">{faq.answer}</p>
+            </div>
+          ))}
+        </div>
+        <div class="text-center" style="margin-top: var(--space-8);">
+          <a href="/faq" class="btn btn-secondary">All FAQs <Icon name="arrow-right" size={18} /></a>
+        </div>
+      </div>
+    </section>
+  )}
+</BaseLayout>
+
+<style>
+  .section__header { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-8); }
+  .faq-teaser { display: grid; gap: var(--space-6); margin-top: var(--space-8); }
+  @media (min-width: 768px) { .faq-teaser { grid-template-columns: repeat(3, 1fr); } }
+  .faq-teaser__q { font-size: var(--text-lg); margin-bottom: var(--space-2); }
+  .faq-teaser__a { color: var(--color-charcoal-soft); font-size: var(--text-sm); }
+</style>
