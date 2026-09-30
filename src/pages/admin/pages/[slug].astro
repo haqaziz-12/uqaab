@@ -1,0 +1,105 @@
+---
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import Icon from '../../../components/ui/Icon.astro';
+import { createPublicServerClient } from '../../../lib/supabase-server';
+
+const { slug } = Astro.params;
+const client = createPublicServerClient();
+const { data: page } = await client.from('pages').select('*').eq('slug', slug).single();
+
+if (!page) {
+  return Astro.redirect('/admin/pages');
+}
+
+const seo = { title: `Edit: ${page.title} — Admin`, description: '', canonical: '' };
+---
+
+<AdminLayout seo={seo} title={`Edit: ${page.title}`} activePage="pages" user={Astro.locals.user}>
+  <div class="admin-card">
+    <div class="admin-card__header">
+      <h2 class="admin-card__title">Page Settings</h2>
+      <a href={`/admin/pages/${slug}/sections`} class="admin-btn admin-btn--secondary">
+        <Icon name="list" size={16} /> Manage Sections
+      </a>
+    </div>
+
+    <form id="page-edit-form" data-slug={slug}>
+      <div class="admin-form-group">
+        <label class="admin-form-label" for="title">Page Title</label>
+        <input type="text" id="title" name="title" class="admin-form-input" value={page.title} required />
+      </div>
+
+      <div class="admin-form-group">
+        <label class="admin-form-label" for="seo_title">SEO Title</label>
+        <input type="text" id="seo_title" name="seo_title" class="admin-form-input" value={page.seo_title || ''} />
+      </div>
+
+      <div class="admin-form-group">
+        <label class="admin-form-label" for="seo_description">SEO Description</label>
+        <textarea id="seo_description" name="seo_description" class="admin-form-textarea">{page.seo_description || ''}</textarea>
+      </div>
+
+      <div class="admin-form-group">
+        <label class="admin-form-label" for="status">Status</label>
+        <select id="status" name="status" class="admin-form-select">
+          <option value="published" selected={page.status === 'published'}>Published</option>
+          <option value="draft" selected={page.status === 'draft'}>Draft</option>
+        </select>
+      </div>
+
+      <div class="admin-form-group">
+        <label class="admin-form-label" for="sort_order">Sort Order</label>
+        <input type="number" id="sort_order" name="sort_order" class="admin-form-input" value={page.sort_order} />
+      </div>
+
+      <div class="admin-form-actions">
+        <button type="submit" class="admin-btn admin-btn--primary" id="save-btn">
+          <Icon name="save" size={16} /> Save Changes
+        </button>
+        <a href="/admin/pages" class="admin-btn admin-btn--ghost">Cancel</a>
+      </div>
+    </form>
+
+    <div id="form-message" role="status" aria-live="polite"></div>
+  </div>
+</AdminLayout>
+
+<script define:vars={{ slug }}>
+  const form = document.getElementById('page-edit-form');
+  const saveBtn = document.getElementById('save-btn');
+  const message = document.getElementById('form-message');
+
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    saveBtn.disabled = true;
+    saveBtn.innerHTML = '<span class="spinner" style="width:16px;height:16px;"></span> Saving...';
+
+    const data = {
+      title: document.getElementById('title').value,
+      seo_title: document.getElementById('seo_title').value || null,
+      seo_description: document.getElementById('seo_description').value || null,
+      status: document.getElementById('status').value,
+      sort_order: parseInt(document.getElementById('sort_order').value) || 0,
+    };
+
+    try {
+      const res = await fetch(`/api/admin/page/${slug}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      const result = await res.json();
+
+      if (result.success) {
+        message.innerHTML = '<p style="color: var(--color-success); padding: 8px;">✓ Saved successfully.</p>';
+      } else {
+        message.innerHTML = `<p style="color: var(--color-error); padding: 8px;">Error: ${result.error || 'Failed to save.'}</p>`;
+      }
+    } catch (err) {
+      message.innerHTML = '<p style="color: var(--color-error); padding: 8px;">Network error.</p>';
+    } finally {
+      saveBtn.disabled = false;
+      saveBtn.textContent = 'Save Changes';
+    }
+  });
+</script>
