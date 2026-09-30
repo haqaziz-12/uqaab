@@ -1,0 +1,74 @@
+---
+import Icon from '../ui/Icon.astro';
+
+export interface Props { settings?: any; }
+const { settings } = Astro.props;
+
+const companyName = settings?.company_name || 'UQAAB CARPET';
+const legalName = settings?.legal_name || 'Uqaab Nawin Afghanistan Ltd.';
+const address = settings?.address || 'House #3, Opposite to Ansar Hospital, Shahrak Pamir, Kotal Khair Khana, Kabul, Afghanistan';
+const email = settings?.email || 'uqaab.carpet@yahoo.com';
+const whatsappLink = settings?.whatsapp_link || 'https://wa.me/93771444555';
+const facebookUrl = settings?.facebook_url || 'https://www.facebook.com/share/1ZU2fMvYiZ/';
+const tagline = settings?.tagline || 'The Art of Afghan Weaving. Crafted for the World.';
+const currentYear = new Date().getFullYear();
+
+const quickLinks = [
+  { label: 'Home', href: '/' }, { label: 'About Us', href: '/about' },
+  { label: 'Our Products', href: '/products' }, { label: 'Our Craft', href: '/craft' },
+  { label: 'Services', href: '/services' }, { label: 'Wholesale & Exports', href: '/wholesale-exports' },
+  { label: 'Vision & Mission', href: '/about/vision-mission' }, { label: 'FAQ', href: '/faq' },
+  { label: 'Contact Us', href: '/contact' },
+];
+---
+
+<footer class="footer">
+  <div class="container footer__inner">
+    <div class="footer__brand">
+      <h2 class="footer__company">{companyName}</h2>
+      <p class="footer__legal-name">{legalName}</p>
+      <p class="footer__tagline">"{tagline}"</p>
+      <p class="footer__address">{address}</p>
+    </div>
+    <div class="footer__links">
+      <h3 class="footer__heading">Quick Links</h3>
+      <ul class="footer__link-list">
+        {quickLinks.map((link) => (<li><a href={link.href} class="footer__link">{link.label}</a></li>))}
+      </ul>
+    </div>
+    <div class="footer__contact">
+      <h3 class="footer__heading">Contact</h3>
+      <ul class="footer__contact-list">
+        <li><a href={`mailto:${email}`} class="footer__contact-link"><Icon name="mail" size={18} /> {email}</a></li>
+        <li><a href={whatsappLink} target="_blank" rel="noopener noreferrer" class="footer__contact-link"><Icon name="message-circle" size={18} /> WhatsApp</a></li>
+        <li><a href={facebookUrl} target="_blank" rel="noopener noreferrer" class="footer__contact-link"><Icon name="facebook" size={18} /> Facebook</a></li>
+      </ul>
+    </div>
+    <div class="footer__legal-links">
+      <a href="/legal/privacy" class="footer__link">Privacy Policy</a><span class="footer__sep">·</span>
+      <a href="/legal/terms" class="footer__link">Terms & Conditions</a><span class="footer__sep">·</span>
+      <a href="/admin" class="footer__link">Admin</a>
+    </div>
+  </div>
+  <div class="footer__bottom"><div class="container"><p>&copy; {currentYear} {legalName}. All rights reserved.</p></div></div>
+</footer>
+
+<style>
+  .footer { background-color: var(--color-charcoal); color: var(--color-ivory); padding: var(--space-16) 0 0; margin-top: var(--space-24); }
+  .footer__inner { display: grid; gap: var(--space-12); padding-bottom: var(--space-12); }
+  @media (min-width: 768px) { .footer__inner { grid-template-columns: 2fr 1fr 1fr; } }
+  .footer__company { font-family: var(--font-heading); font-size: var(--text-2xl); color: var(--color-ivory); margin-bottom: var(--space-1); }
+  .footer__legal-name { font-size: var(--text-sm); color: var(--color-gold); margin-bottom: var(--space-4); }
+  .footer__tagline { font-style: italic; color: var(--color-ivory-warm); margin-bottom: var(--space-4); font-size: var(--text-sm); }
+  .footer__address { font-size: var(--text-sm); color: rgba(248,244,236,0.7); line-height: 1.5; }
+  .footer__heading { font-size: var(--text-base); color: var(--color-gold); margin-bottom: var(--space-4); font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; }
+  .footer__link-list, .footer__contact-list { list-style: none; padding: 0; display: flex; flex-direction: column; gap: var(--space-2); }
+  .footer__link { color: rgba(248,244,236,0.8); font-size: var(--text-sm); }
+  .footer__link:hover { color: var(--color-gold); }
+  .footer__contact-link { display: flex; align-items: center; gap: var(--space-2); color: rgba(248,244,236,0.8); font-size: var(--text-sm); }
+  .footer__contact-link:hover { color: var(--color-gold); }
+  .footer__legal-links { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); padding-top: var(--space-8); border-top: 1px solid rgba(255,255,255,0.1); }
+  .footer__sep { color: rgba(255,255,255,0.3); }
+  .footer__bottom { background-color: rgba(0,0,0,0.2); padding: var(--space-4) 0; }
+  .footer__bottom p { font-size: var(--text-xs); color: rgba(248,244,236,0.5); margin: 0; }
+</style>
