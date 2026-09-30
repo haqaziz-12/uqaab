@@ -1,0 +1,89 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import Icon from '../../components/ui/Icon.astro';
+import { createPublicServerClient } from '../../lib/supabase-server';
+
+const client = createPublicServerClient();
+
+const [{ count: pageCount }, { count: productCount }, { count: inquiryCount }, { data: recentInquiries }] = await Promise.all([
+  client.from('pages').select('*', { count: 'exact', head: true }),
+  client.from('products').select('*', { count: 'exact', head: true }),
+  client.from('inquiries').select('*', { count: 'exact', head: true }),
+  client.from('inquiries').select('*').order('created_at', { ascending: false }).limit(5),
+]);
+
+const stats = [
+  { label: 'Pages', value: pageCount || 0, icon: 'file-text', link: '/admin/pages' },
+  { label: 'Products', value: productCount || 0, icon: 'package', link: '/admin/products' },
+  { label: 'Inquiries', value: inquiryCount || 0, icon: 'inbox', link: '/admin/inquiries' },
+];
+
+const seo = { title: 'Dashboard — Admin', description: '', canonical: '' };
+---
+
+<AdminLayout seo={seo} title="Dashboard" activePage="dashboard" user={Astro.locals.user}>
+  <div class="admin-stats">
+    {stats.map((stat) => (
+      <a href={stat.link} class="admin-stat-card">
+        <div class="admin-stat-card__icon">
+          <Icon name={stat.icon} size={28} />
+        </div>
+        <div class="admin-stat-card__info">
+          <span class="admin-stat-card__value">{stat.value}</span>
+          <span class="admin-stat-card__label">{stat.label}</span>
+        </div>
+      </a>
+    ))}
+  </div>
+
+  <div class="admin-card">
+    <div class="admin-card__header">
+      <h2 class="admin-card__title">Recent Inquiries</h2>
+      <a href="/admin/inquiries" class="admin-btn admin-btn--ghost">View All</a>
+    </div>
+    {recentInquiries && recentInquiries.length > 0 ? (
+      <table class="admin-table">
+        <thead>
+          <tr><th>Name</th><th>Email</th><th>Type</th><th>Status</th><th>Date</th></tr>
+        </thead>
+        <tbody>
+          {recentInquiries.map((inq) => (
+            <tr>
+              <td>{inq.name}</td>
+              <td>{inq.email}</td>
+              <td>{inq.inquiry_type}</td>
+              <td><span class={`admin-badge admin-badge--${inq.status === 'new' ? 'new' : 'published'}`}>{inq.status}</span></td>
+              <td>{new Date(inq.created_at).toLocaleDateString()}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    ) : (
+      <p style="color: var(--color-charcoal-soft); text-align: center; padding: 24px;">No inquiries yet.</p>
+    )}
+  </div>
+
+  <div class="admin-card">
+    <h2 class="admin-card__title">Quick Actions</h2>
+    <div class="quick-actions">
+      <a href="/admin/pages" class="quick-action"><Icon name="file-text" size={24} /><span>Edit Pages</span></a>
+      <a href="/admin/products" class="quick-action"><Icon name="package" size={24} /><span>Manage Products</span></a>
+      <a href="/admin/faqs" class="quick-action"><Icon name="list" size={24} /><span>Edit FAQs</span></a>
+      <a href="/admin/settings" class="quick-action"><Icon name="settings" size={24} /><span>Site Settings</span></a>
+    </div>
+  </div>
+</AdminLayout>
+
+<style>
+  .admin-stats { display: grid; grid-template-columns: 1fr; gap: var(--space-4); margin-bottom: var(--space-6); }
+  @media (min-width: 768px) { .admin-stats { grid-template-columns: repeat(3, 1fr); } }
+  .admin-stat-card { display: flex; align-items: center; gap: var(--space-4); padding: var(--space-6); background-color: var(--color-white); border: 1px solid var(--color-border); border-radius: var(--radius-lg); text-decoration: none; color: inherit; transition: box-shadow 0.2s; }
+  .admin-stat-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+  .admin-stat-card__icon { display: flex; align-items: center; justify-content: center; width: 56px; height: 56px; background-color: var(--color-ivory-warm); border-radius: var(--radius-md); color: var(--color-burgundy); flex-shrink: 0; }
+  .admin-stat-card__value { display: block; font-size: 2rem; font-weight: 700; color: var(--color-charcoal); }
+  .admin-stat-card__label { display: block; font-size: 0.875rem; color: var(--color-charcoal-soft); }
+  .quick-actions { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--space-4); }
+  @media (min-width: 768px) { .quick-actions { grid-template-columns: repeat(4, 1fr); } }
+  .quick-action { display: flex; flex-direction: column; align-items: center; gap: var(--space-2); padding: var(--space-6); border: 1px solid var(--color-border); border-radius: var(--radius-md); text-decoration: none; color: var(--color-charcoal); transition: all 0.15s; }
+  .quick-action:hover { border-color: var(--color-gold); color: var(--color-burgundy); }
+</style>
