@@ -1,0 +1,114 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import Icon from '../../components/ui/Icon.astro';
+import { createPublicServerClient } from '../../lib/supabase-server';
+
+const client = createPublicServerClient();
+const { data: faqs } = await client.from('faqs').select('*').order('sort_order', { ascending: true });
+
+const seo = { title: 'FAQs — Admin', description: '', canonical: '' };
+---
+
+<AdminLayout seo={seo} title="FAQs" activePage="faqs" user={Astro.locals.user}>
+  <div class="admin-card">
+    <div class="admin-card__header">
+      <h2 class="admin-card__title">Frequently Asked Questions</h2>
+      <button class="admin-btn admin-btn--primary" id="add-faq-btn">
+        <Icon name="plus" size={16} /> Add FAQ
+      </button>
+    </div>
+
+    <div id="faq-list">
+      {faqs?.map((faq) => (
+        <div class="faq-edit-item" data-id={faq.id}>
+          <div class="faq-edit-item__fields">
+            <input type="text" class="admin-form-input faq-question" value={faq.question} placeholder="Question" />
+            <textarea class="admin-form-textarea faq-answer" placeholder="Answer">{faq.answer}</textarea>
+            <div class="faq-edit-item__meta">
+              <input type="number" class="admin-form-input faq-sort" value={faq.sort_order} style="width:80px;" />
+              <select class="admin-form-select faq-status">
+                <option value="published" selected={faq.status === 'published'}>Published</option>
+                <option value="draft" selected={faq.status === 'draft'}>Draft</option>
+              </select>
+              <button class="admin-btn admin-btn--primary faq-save">Save</button>
+              <button class="admin-btn admin-btn--danger faq-delete">Delete</button>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+
+    <div id="new-faq-form" style="display:none;" class="faq-edit-item">
+      <div class="faq-edit-item__fields">
+        <input type="text" class="admin-form-input faq-question" placeholder="Question" />
+        <textarea class="admin-form-textarea faq-answer" placeholder="Answer"></textarea>
+        <div class="faq-edit-item__meta">
+          <input type="number" class="admin-form-input faq-sort" value="99" style="width:80px;" />
+          <select class="admin-form-select faq-status">
+            <option value="published">Published</option>
+            <option value="draft">Draft</option>
+          </select>
+          <button class="admin-btn admin-btn--primary faq-create">Create</button>
+          <button class="admin-btn admin-btn--ghost faq-cancel">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</AdminLayout>
+
+<script>
+  const addBtn = document.getElementById('add-faq-btn');
+  const newForm = document.getElementById('new-faq-form');
+
+  addBtn?.addEventListener('click', () => { if (newForm) newForm.style.display = 'block'; });
+  document.querySelector('.faq-cancel')?.addEventListener('click', () => { if (newForm) newForm.style.display = 'none'; });
+
+  document.querySelector('.faq-create')?.addEventListener('click', async () => {
+    const data = {
+      question: newForm.querySelector('.faq-question').value,
+      answer: newForm.querySelector('.faq-answer').value,
+      sort_order: parseInt(newForm.querySelector('.faq-sort').value) || 0,
+      status: newForm.querySelector('.faq-status').value,
+    };
+    const res = await fetch('/api/admin/faq', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    if (res.ok) location.reload();
+  });
+
+  document.querySelectorAll('.faq-save').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const c = btn.closest('.faq-edit-item');
+      const id = c.dataset.id;
+      const data = {
+        question: c.querySelector('.faq-question').value,
+        answer: c.querySelector('.faq-answer').value,
+        sort_order: parseInt(c.querySelector('.faq-sort').value) || 0,
+        status: c.querySelector('.faq-status').value,
+      };
+      const res = await fetch(`/api/admin/faq/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      if (res.ok) alert('Saved!');
+    });
+  });
+
+  document.querySelectorAll('.faq-delete').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      if (!confirm('Delete this FAQ?')) return;
+      const c = btn.closest('.faq-edit-item');
+      const id = c.dataset.id;
+      const res = await fetch(`/api/admin/faq/${id}`, { method: 'DELETE' });
+      if (res.ok) location.reload();
+    });
+  });
+</script>
+
+<style>
+  .faq-edit-item { border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: var(--space-4); margin-bottom: var(--space-4); }
+  .faq-edit-item__meta { display: flex; gap: var(--space-2); align-items: center; margin-top: var(--space-3); }
+</style>
