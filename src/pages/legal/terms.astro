@@ -1,0 +1,86 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getSiteSettings } from '../../lib/data';
+
+const settings = await getSiteSettings();
+const siteUrl = import.meta.env.PUBLIC_SITE_URL || 'https://uqaabcarpet.com';
+const companyName = settings?.company_name || 'UQAAB CARPET';
+const legalName = settings?.legal_name || 'Uqaab Nawin Afghanistan Ltd.';
+const email = settings?.email || 'uqaab.carpet@yahoo.com';
+
+const seo = {
+  title: 'Terms & Conditions | UQAAB CARPET',
+  description: 'Terms and conditions for using the UQAAB CARPET website and services.',
+  canonical: `${siteUrl}/legal/terms`,
+  ogType: 'website',
+};
+---
+
+<BaseLayout seo={seo} settings={settings}>
+  <div class="container">
+    <nav aria-label="Breadcrumb">
+      <ol class="breadcrumb">
+        <li><a href="/">Home</a></li>
+        <li aria-current="page">Terms & Conditions</li>
+      </ol>
+    </nav>
+  </div>
+
+  <section class="section">
+    <div class="container">
+      <div class="legal-content">
+        <h1>Terms & Conditions</h1>
+        <p class="legal-updated">Last updated: {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+
+        <div class="legal-warning">
+          <strong>Note:</strong> This is a template terms and conditions document. It must be reviewed and approved by the company's legal advisor before launch.
+        </div>
+
+        <h2>1. Acceptance of Terms</h2>
+        <p>By accessing and using the {companyName} website, you accept and agree to be bound by these Terms and Conditions. If you do not agree, please do not use our website.</p>
+
+        <h2>2. Use of Website</h2>
+        <p>You may use our website for lawful purposes only. You agree not to:</p>
+        <ul>
+          <li>Use the website in any way that violates applicable laws or regulations.</li>
+          <li>Attempt to gain unauthorized access to any part of the website.</li>
+          <li>Submit false or misleading information through our forms.</li>
+          <li>Use automated systems to submit forms or scrape content.</li>
+        </ul>
+
+        <h2>3. Intellectual Property</h2>
+        <p>All content on this website, including text, images, logos, and design, is the property of {legalName} unless otherwise stated. You may not reproduce, distribute, or use our content without prior written permission.</p>
+
+        <h2>4. Product Information</h2>
+        <p>Carpet images and descriptions on this website are for illustrative purposes. Actual products may vary in color, pattern, and specifications. All product information is subject to confirmation. Prices are available on enquiry only.</p>
+
+        <h2>5. Inquiries and Orders</h2>
+        <p>Submitting an inquiry through our website does not constitute a binding order. All orders are subject to confirmation, availability, and agreed terms between you and {legalName}.</p>
+
+        <h2>6. Limitation of Liability</h2>
+        <p>{legalName} shall not be liable for any indirect, incidental, or consequential damages arising from your use of this website. We strive for accuracy but do not warrant that all information is error-free.</p>
+
+        <h2>7. External Links</h2>
+        <p>Our website may contain links to third-party websites. We are not responsible for the content or practices of those websites.</p>
+
+        <h2>8. Governing Law</h2>
+        <p>These Terms and Conditions are governed by the laws of Afghanistan, unless otherwise specified by applicable international trade agreements.</p>
+
+        <h2>9. Changes to Terms</h2>
+        <p>We may update these Terms and Conditions from time to time. We will post any changes on this page with an updated revision date.</p>
+
+        <h2>10. Contact Us</h2>
+        <p>If you have questions about these Terms and Conditions, please contact us at {email}.</p>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .legal-content { max-width: 800px; }
+  .legal-updated { color: var(--color-charcoal-soft); font-size: var(--text-sm); margin-bottom: var(--space-8); }
+  .legal-warning { background-color: rgba(184,149,74,0.1); border: 1px solid var(--color-gold); border-radius: var(--radius-md); padding: var(--space-4); margin-bottom: var(--space-8); font-size: var(--text-sm); }
+  .legal-content h2 { font-size: var(--text-xl); margin-top: var(--space-8); margin-bottom: var(--space-4); }
+  .legal-content ul { margin-bottom: var(--space-4); padding-left: var(--space-6); }
+  .legal-content li { margin-bottom: var(--space-2); }
+</style>
