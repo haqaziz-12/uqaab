@@ -1,0 +1,28 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageSectionRenderer from '../../components/sections/PageSectionRenderer.astro';
+import { getSiteSettings, getPageBySlug, getPageSections } from '../../lib/data';
+import { buildSeo } from '../../lib/seo';
+
+const settings = await getSiteSettings();
+const page = await getPageBySlug('vision-mission');
+const sections = await getPageSections('vision-mission');
+const siteUrl = import.meta.env.PUBLIC_SITE_URL || 'https://uqaabcarpet.com';
+const seo = buildSeo(page, settings, siteUrl, '/about/vision-mission');
+---
+
+<BaseLayout seo={seo} settings={settings}>
+  <div class="container">
+    <nav aria-label="Breadcrumb">
+      <ol class="breadcrumb">
+        <li><a href="/">Home</a></li>
+        <li><a href="/about">About Us</a></li>
+        <li aria-current="page">Vision & Mission</li>
+      </ol>
+    </nav>
+  </div>
+
+  {sections.map((section) => (
+    <PageSectionRenderer section={section} />
+  ))}
+</BaseLayout>
