@@ -1,0 +1,47 @@
+---
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import Icon from '../../../components/ui/Icon.astro';
+import { createPublicServerClient } from '../../../lib/supabase-server';
+
+const client = createPublicServerClient();
+const { data: pages } = await client.from('pages').select('*').order('sort_order', { ascending: true });
+
+const seo = { title: 'Pages — Admin', description: '', canonical: '' };
+---
+
+<AdminLayout seo={seo} title="Pages" activePage="pages" user={Astro.locals.user}>
+  <div class="admin-card">
+    <div class="admin-card__header">
+      <h2 class="admin-card__title">All Pages</h2>
+    </div>
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>Title</th><th>Slug</th><th>Type</th><th>Status</th><th>Sections</th><th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {pages?.map((page) => (
+          <tr>
+            <td>{page.title}</td>
+            <td>/{page.slug}</td>
+            <td>{page.page_type}</td>
+            <td>
+              <span class={`admin-badge admin-badge--${page.status}`}>{page.status}</span>
+            </td>
+            <td>
+              <a href={`/admin/pages/${page.slug}/sections`} class="admin-btn admin-btn--ghost" style="padding:4px 8px;font-size:0.75rem;">
+                <Icon name="list" size={14} /> Edit Sections
+              </a>
+            </td>
+            <td>
+              <a href={`/admin/pages/${page.slug}`} class="admin-btn admin-btn--ghost" style="padding:4px 8px;font-size:0.75rem;">
+                <Icon name="edit" size={14} /> Edit
+              </a>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+</AdminLayout>
