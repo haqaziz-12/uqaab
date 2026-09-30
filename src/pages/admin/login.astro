@@ -1,0 +1,123 @@
+---
+import { getSiteSettings } from '../../lib/data';
+
+const settings = await getSiteSettings();
+const supabaseUrl = import.meta.env.SUPABASE_URL || (globalThis as any).SUPABASE_URL || '';
+const supabaseAnonKey = import.meta.env.SUPABASE_ANON_KEY || (globalThis as any).SUPABASE_ANON_KEY || '';
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>Admin Login — UQAAB CARPET</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  </head>
+  <body class="login-body">
+    <div class="login-container">
+      <div class="login-card">
+        <div class="login-header">
+          <h1 class="login-title">UQAAB CARPET</h1>
+          <p class="login-subtitle">Admin Dashboard</p>
+        </div>
+
+        <form id="login-form" class="login-form">
+          <div class="login-field">
+            <label for="email" class="login-label">Email</label>
+            <input type="email" id="email" name="email" class="login-input" required autocomplete="email" />
+          </div>
+          <div class="login-field">
+            <label for="password" class="login-label">Password</label>
+            <input type="password" id="password" name="password" class="login-input" required autocomplete="current-password" />
+          </div>
+          <button type="submit" class="login-btn" id="login-btn">
+            <span class="login-btn-text">Sign In</span>
+            <span class="spinner login-btn-spinner" style="display:none;"></span>
+          </button>
+          <div class="login-message" id="login-message" role="alert"></div>
+        </form>
+
+        <div class="login-footer">
+          <a href="/">← Back to Website</a>
+        </div>
+      </div>
+    </div>
+
+    <script define:vars={{ supabaseUrl, supabaseAnonKey }}>
+      window.__SUPABASE_URL = supabaseUrl || '';
+      window.__SUPABASE_ANON_KEY = supabaseAnonKey || '';
+    </script>
+
+    <script type="module">
+      import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+
+      const form = document.getElementById('login-form');
+      const btn = document.getElementById('login-btn');
+      const btnText = btn.querySelector('.login-btn-text');
+      const spinner = btn.querySelector('.login-btn-spinner');
+      const message = document.getElementById('login-message');
+
+      form?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+
+        if (!window.__SUPABASE_URL || !window.__SUPABASE_ANON_KEY) {
+          message.innerHTML = '<p class="login-error">Supabase is not configured. Set SUPABASE_URL and SUPABASE_ANON_KEY in Cloudflare environment variables.</p>';
+          return;
+        }
+
+        btn.disabled = true;
+        btnText.textContent = 'Signing in...';
+        spinner.style.display = 'inline-block';
+        message.innerHTML = '';
+
+        try {
+          const supabase = createClient(window.__SUPABASE_URL, window.__SUPABASE_ANON_KEY);
+          const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+
+          if (error) {
+            message.innerHTML = `<p class="login-error">${error.message}</p>`;
+            btn.disabled = false;
+            btnText.textContent = 'Sign In';
+            spinner.style.display = 'none';
+          } else {
+            window.location.href = '/admin';
+          }
+        } catch (err) {
+          message.innerHTML = '<p class="login-error">An error occurred. Please try again.</p>';
+          btn.disabled = false;
+          btnText.textContent = 'Sign In';
+          spinner.style.display = 'none';
+        }
+      });
+    </script>
+
+    <style>
+      .login-body { margin: 0; font-family: 'Inter', system-ui, sans-serif; background-color: #2B2B2B; display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 24px; }
+      .login-container { width: 100%; max-width: 400px; }
+      .login-card { background-color: #F8F4EC; border-radius: 12px; padding: 48px 32px; box-shadow: 0 8px 32px rgba(0,0,0,0.2); }
+      .login-header { text-align: center; margin-bottom: 32px; }
+      .login-title { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 2rem; color: #6B1F2E; margin: 0; font-weight: 700; }
+      .login-subtitle { font-size: 0.75rem; color: #B8954A; letter-spacing: 0.3em; text-transform: uppercase; margin-top: 4px; }
+      .login-field { margin-bottom: 20px; }
+      .login-label { display: block; font-size: 0.875rem; font-weight: 500; color: #2B2B2B; margin-bottom: 6px; }
+      .login-input { width: 100%; padding: 10px 14px; font-size: 0.875rem; border: 1px solid #D9CFC0; border-radius: 8px; background-color: white; font-family: inherit; min-height: 44px; }
+      .login-input:focus { outline: none; border-color: #B8954A; box-shadow: 0 0 0 3px rgba(184,149,74,0.2); }
+      .login-btn { width: 100%; padding: 12px; background-color: #6B1F2E; color: #F8F4EC; border: none; border-radius: 8px; font-size: 0.875rem; font-weight: 500; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; }
+      .login-btn:hover { background-color: #4A1520; }
+      .login-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+      .login-btn-spinner { width: 16px; height: 16px; border: 2px solid rgba(248,244,236,0.3); border-top-color: #F8F4EC; border-radius: 50%; animation: spin 0.8s linear infinite; }
+      @keyframes spin { to { transform: rotate(360deg); } }
+      .login-message { margin-top: 16px; }
+      .login-error { color: #B33A3A; font-size: 0.875rem; margin: 0; padding: 8px 12px; background-color: rgba(179,58,58,0.1); border-radius: 6px; }
+      .login-footer { text-align: center; margin-top: 24px; }
+      .login-footer a { color: #4A4A4A; font-size: 0.875rem; text-decoration: none; }
+      .login-footer a:hover { color: #6B1F2E; }
+    </style>
+  </body>
+</html>
