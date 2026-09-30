@@ -1,0 +1,131 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ProductCard from '../../components/product/ProductCard.astro';
+import ProductGallery from '../../components/product/ProductGallery.astro';
+import Icon from '../../components/ui/Icon.astro';
+import { getSiteSettings, getProductBySlug, getRelatedProducts } from '../../lib/data';
+import { buildProductSeo } from '../../lib/seo';
+import { buildWhatsAppLink, buildProductInquiryMessage } from '../../lib/whatsapp';
+
+const { slug } = Astro.params;
+const settings = await getSiteSettings();
+const product = await getProductBySlug(slug);
+
+if (!product) {
+  return Astro.redirect('/404');
+}
+
+const relatedProducts = await getRelatedProducts(product, 4);
+const siteUrl = import.meta.env.PUBLIC_SITE_URL || 'https://uqaabcarpet.com';
+const seo = buildProductSeo(product, siteUrl, settings);
+
+const whatsappLink = settings?.whatsapp_link || 'https://wa.me/93771444555';
+const inquiryMessage = buildProductInquiryMessage(product.name, product.product_id);
+const whatsappUrl = buildWhatsAppLink(whatsappLink, inquiryMessage);
+
+const attributes = [
+  { label: 'Collection Type', value: product.collection_type },
+  { label: 'Category', value: product.category },
+  { label: 'Size', value: product.size },
+  { label: 'Quality', value: product.quality },
+  { label: 'Material', value: product.material },
+  { label: 'Pile Type', value: product.pile_type },
+  { label: 'Country of Origin', value: product.country_origin },
+];
+const visibleAttributes = attributes.filter(a => a.value);
+---
+
+<BaseLayout seo={seo} settings={settings}>
+  <div class="container">
+    <nav aria-label="Breadcrumb">
+      <ol class="breadcrumb">
+        <li><a href="/">Home</a></li>
+        <li><a href="/products">Our Products</a></li>
+        <li aria-current="page">{product.name}</li>
+      </ol>
+    </nav>
+  </div>
+
+  <section class="section">
+    <div class="container">
+      <div class="product-detail">
+        <div class="product-detail__gallery">
+          <ProductGallery
+            frontImage={product.image_front}
+            backImage={product.image_back}
+            closeupImage={product.image_closeup}
+            frontAlt={product.image_front_alt || product.name}
+            backAlt={product.image_back_alt || `${product.name} back view`}
+            closeupAlt={product.image_closeup_alt || `${product.name} close-up detail`}
+          />
+        </div>
+
+        <div class="product-detail__info">
+          {product.collection_type && <p class="eyebrow">{product.collection_type}</p>}
+          <h1>{product.name}</h1>
+          <p class="product-detail__id">Ref: {product.product_id}</p>
+
+          {product.description && (
+            <div class="product-detail__description" set:html={product.description}></div>
+          )}
+
+          {visibleAttributes.length > 0 && (
+            <dl class="product-detail__attributes">
+              {visibleAttributes.map((attr) => (
+                <div class="attribute-row">
+                  <dt>{attr.label}</dt>
+                  <dd>{attr.value}</dd>
+                </div>
+              ))}
+            </dl>
+          )}
+
+          <div class="product-detail__price">
+            <span class="product-detail__price-label">Price</span>
+            <span class="product-detail__price-value">{product.price_display}</span>
+          </div>
+
+          <div class="product-detail__actions">
+            <a href="/inquiry" class="btn btn-primary" data-product={product.slug}>
+              <Icon name="mail" size={18} /> Request a Quote
+            </a>
+            <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" class="btn btn-whatsapp">
+              <Icon name="message-circle" size={18} /> Ask via WhatsApp
+            </a>
+          </div>
+
+          <p class="product-detail__note">
+            All specifications are subject to confirmation. Please contact us for accurate details and pricing.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  {relatedProducts.length > 0 && (
+    <section class="section bg-ivory-warm">
+      <div class="container">
+        <h2 class="section__heading">Related Carpets</h2>
+        <div class="grid grid--4">
+          {relatedProducts.map((p) => (<ProductCard product={p} />))}
+        </div>
+      </div>
+    </section>
+  )}
+</BaseLayout>
+
+<style>
+  .product-detail { display: grid; gap: var(--space-8); }
+  @media (min-width: 1024px) { .product-detail { grid-template-columns: 1fr 1fr; gap: var(--space-12); } }
+  .product-detail__id { font-size: var(--text-sm); color: var(--color-charcoal-soft); margin-bottom: var(--space-4); }
+  .product-detail__description { color: var(--color-charcoal-soft); font-size: var(--text-lg); margin-bottom: var(--space-6); }
+  .product-detail__attributes { border-top: 1px solid var(--color-border); margin-bottom: var(--space-6); }
+  .attribute-row { display: flex; justify-content: space-between; padding: var(--space-3) 0; border-bottom: 1px solid var(--color-border); }
+  .attribute-row dt { font-weight: 500; color: var(--color-charcoal); }
+  .attribute-row dd { color: var(--color-charcoal-soft); text-align: right; }
+  .product-detail__price { display: flex; align-items: baseline; gap: var(--space-3); padding: var(--space-4) 0; margin-bottom: var(--space-6); }
+  .product-detail__price-label { font-size: var(--text-sm); color: var(--color-charcoal-soft); text-transform: uppercase; letter-spacing: 0.1em; }
+  .product-detail__price-value { font-family: var(--font-heading); font-size: var(--text-xl); color: var(--color-burgundy); font-weight: 600; }
+  .product-detail__actions { display: flex; flex-wrap: wrap; gap: var(--space-3); margin-bottom: var(--space-4); }
+  .product-detail__note { font-size: var(--text-xs); color: var(--color-charcoal-soft); font-style: italic; }
+</style>
