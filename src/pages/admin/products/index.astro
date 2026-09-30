@@ -1,0 +1,72 @@
+---
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import Icon from '../../../components/ui/Icon.astro';
+import { createPublicServerClient } from '../../../lib/supabase-server';
+
+const client = createPublicServerClient();
+const { data: products } = await client.from('products').select('*').order('sort_order', { ascending: true });
+
+const seo = { title: 'Products — Admin', description: '', canonical: '' };
+---
+
+<AdminLayout seo={seo} title="Products" activePage="products" user={Astro.locals.user}>
+  <div class="admin-card">
+    <div class="admin-card__header">
+      <h2 class="admin-card__title">All Products ({products?.length || 0})</h2>
+      <a href="/admin/products/new" class="admin-btn admin-btn--primary">
+        <Icon name="plus" size={16} /> Add Product
+      </a>
+    </div>
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>ID</th><th>Name</th><th>Collection</th><th>Category</th>
+          <th>Featured</th><th>Status</th><th>Images</th><th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {products?.map((p) => (
+          <tr>
+            <td><code>{p.product_id}</code></td>
+            <td>{p.name}</td>
+            <td>{p.collection_type || '—'}</td>
+            <td>{p.category || '—'}</td>
+            <td>{p.featured ? '★' : '—'}</td>
+            <td>
+              <span class={`admin-badge admin-badge--${p.status}`}>{p.status}</span>
+            </td>
+            <td>
+              <span style="font-size:0.75rem;">
+                F:{p.image_front ? '✓' : '✗'} B:{p.image_back ? '✓' : '✗'} C:{p.image_closeup ? '✓' : '✗'}
+              </span>
+            </td>
+            <td>
+              <div style="display:flex;gap:4px;">
+                <a href={`/admin/products/${p.slug}`} class="admin-btn admin-btn--ghost" style="padding:4px 8px;font-size:0.75rem;">
+                  <Icon name="edit" size={14} />
+                </a>
+                <button class="admin-btn admin-btn--danger delete-product" data-slug={p.slug} style="padding:4px 8px;font-size:0.75rem;">
+                  <Icon name="trash" size={14} />
+                </button>
+              </div>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+</AdminLayout>
+
+<script>
+  document.querySelectorAll('.delete-product').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      if (!confirm('Delete this product? This cannot be undone.')) return;
+      const slug = btn.dataset.slug;
+      try {
+        const res = await fetch(`/api/admin/product/${slug}`, { method: 'DELETE' });
+        if (res.ok) location.reload();
+        else alert('Failed to delete product.');
+      } catch { alert('Network error.'); }
+    });
+  });
+</script>
