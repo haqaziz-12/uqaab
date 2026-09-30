@@ -1,0 +1,179 @@
+---
+import type { PageSection } from '../../types';
+import ImagePlaceholder from '../ui/ImagePlaceholder.astro';
+import Icon from '../ui/Icon.astro';
+
+export interface Props { section: PageSection; }
+const { section } = Astro.props;
+const s = section;
+const cards = s.content_json?.cards || [];
+const stats = s.content_json?.stats || [];
+---
+
+{s.section_type === 'hero' && (
+  <section class="section-hero">
+    <div class="container">
+      <div class="hero__content">
+        {s.subheading && <p class="eyebrow">{s.subheading}</p>}
+        <h1 class="hero__title">{s.heading}</h1>
+        {s.body && <p class="hero__body">{s.body}</p>}
+        {s.link_label && s.link_url && (
+          <a href={s.link_url} class="btn btn-primary hero__cta">{s.link_label} <Icon name="arrow-right" size={18} /></a>
+        )}
+      </div>
+      <div class="hero__image">
+        <ImagePlaceholder src={s.image_url} alt={s.image_alt || s.heading || 'Hero image'} aspectRatio="16/9" color="burgundy" label="Hero Banner" loading="eager" />
+      </div>
+    </div>
+  </section>
+)}
+
+{s.section_type === 'text_block' && (
+  <section class="section section--text">
+    <div class="container">
+      <div class="text-block">
+        {s.heading && <h2 class="text-block__heading">{s.heading}</h2>}
+        {s.body && <div class="text-block__body" set:html={s.body}></div>}
+        {s.image_url !== undefined && (
+          <div class="text-block__image">
+            <ImagePlaceholder src={s.image_url} alt={s.image_alt || s.heading || ''} aspectRatio="3/2" color="beige" label="Section Image" />
+            {s.image_caption && <p class="text-block__caption">{s.image_caption}</p>}
+          </div>
+        )}
+        {s.link_label && s.link_url && (
+          <a href={s.link_url} class="btn btn-secondary">{s.link_label} <Icon name="arrow-right" size={18} /></a>
+        )}
+      </div>
+    </div>
+  </section>
+)}
+
+{s.section_type === 'card_grid' && (
+  <section class="section">
+    <div class="container">
+      {s.heading && <h2 class="section__heading text-center">{s.heading}</h2>}
+      {s.subheading && <p class="section__subheading text-center">{s.subheading}</p>}
+      <div class="grid grid--3">
+        {cards.map((card) => (
+          <div class="card">
+            <div class="card__image">
+              <ImagePlaceholder src={card.image_url || null} alt={card.image_alt || card.title || ''} aspectRatio="4/3" color="ivory" label="Card Image" />
+            </div>
+            <div class="card-body">
+              <h3 class="card-title">{card.title}</h3>
+              <p class="card-text">{card.description}</p>
+              {card.link_label && card.link_url && (
+                <a href={card.link_url} class="btn btn-ghost">{card.link_label} <Icon name="arrow-right" size={16} /></a>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+)}
+
+{s.section_type === 'cta_band' && (
+  <section class="section-cta">
+    <div class="container">
+      <div class="cta-band">
+        <div class="cta-band__content">
+          {s.heading && <h2 class="cta-band__title">{s.heading}</h2>}
+          {s.body && <p class="cta-band__body">{s.body}</p>}
+        </div>
+        {s.link_label && s.link_url && (
+          <a href={s.link_url} class="btn btn-primary cta-band__btn">{s.link_label} <Icon name="arrow-right" size={18} /></a>
+        )}
+      </div>
+    </div>
+  </section>
+)}
+
+{s.section_type === 'stat_band' && (
+  <section class="section">
+    <div class="container">
+      {s.heading && <h2 class="section__heading text-center">{s.heading}</h2>}
+      <div class="stat-band">
+        {stats.map((stat) => (
+          <div class="stat-band__item">
+            <span class="stat-band__value">{stat.value}</span>
+            <span class="stat-band__label">{stat.label}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+)}
+
+{s.section_type === 'map_embed' && (
+  <section class="section">
+    <div class="container">
+      {s.heading && <h2 class="section__heading">{s.heading}</h2>}
+      {s.body && <p class="section__body">{s.body}</p>}
+      <div class="map-embed">
+        <iframe src="https://www.google.com/maps?q=Kabul+Afghanistan&output=embed" width="100%" height="400" style="border:0; border-radius: var(--radius-lg);" loading="lazy" referrerpolicy="no-referrer-when-downgrade" title="UQAAB CARPET location in Kabul, Afghanistan"></iframe>
+      </div>
+    </div>
+  </section>
+)}
+
+{s.section_type === 'form_embed' && (
+  <section class="section">
+    <div class="container">
+      {s.heading && <h2 class="section__heading">{s.heading}</h2>}
+      <slot name="contact-form" />
+    </div>
+  </section>
+)}
+
+{s.section_type === 'export_reach' && (
+  <section class="section">
+    <div class="container">
+      {s.heading && <h2 class="section__heading text-center">{s.heading}</h2>}
+      <div class="export-reach">
+        {['United States', 'China', 'Europe', 'UAE'].map((region) => (
+          <div class="export-reach__item">
+            <Icon name="globe" size={32} />
+            <span class="export-reach__label">{region}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+)}
+
+<style>
+  .section-hero { padding: var(--space-16) 0; background-color: var(--color-ivory); }
+  @media (min-width: 768px) { .section-hero { padding: var(--space-24) 0; } }
+  .hero__content { max-width: 600px; margin-bottom: var(--space-8); }
+  .hero__title { margin-bottom: var(--space-4); }
+  .hero__body { font-size: var(--text-lg); color: var(--color-charcoal-soft); margin-bottom: var(--space-6); }
+  .hero__cta { margin-top: var(--space-4); }
+  @media (min-width: 768px) {
+    .section-hero .container { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-12); align-items: center; }
+    .hero__content { margin-bottom: 0; }
+  }
+  .text-block { max-width: 800px; }
+  .text-block__heading { margin-bottom: var(--space-4); }
+  .text-block__body { color: var(--color-charcoal-soft); font-size: var(--text-lg); margin-bottom: var(--space-6); }
+  .text-block__image { margin: var(--space-8) 0; }
+  .text-block__caption { font-size: var(--text-sm); color: var(--color-charcoal-soft); margin-top: var(--space-2); font-style: italic; }
+  .section__heading { margin-bottom: var(--space-4); }
+  .section__subheading { color: var(--color-charcoal-soft); margin-bottom: var(--space-8); font-size: var(--text-lg); }
+  .section-cta { padding: var(--space-12) 0; }
+  .cta-band { background-color: var(--color-burgundy); color: var(--color-ivory); border-radius: var(--radius-lg); padding: var(--space-12) var(--space-8); display: flex; flex-direction: column; gap: var(--space-6); align-items: flex-start; }
+  @media (min-width: 768px) { .cta-band { flex-direction: row; align-items: center; justify-content: space-between; } }
+  .cta-band__title { color: var(--color-ivory); margin-bottom: var(--space-2); }
+  .cta-band__body { color: rgba(248,244,236,0.85); margin: 0; }
+  .cta-band__btn { background-color: var(--color-ivory); color: var(--color-burgundy); border-color: var(--color-ivory); }
+  .cta-band__btn:hover { background-color: var(--color-white); }
+  .stat-band { display: grid; grid-template-columns: 1fr; gap: var(--space-8); text-align: center; margin-top: var(--space-8); }
+  @media (min-width: 768px) { .stat-band { grid-template-columns: repeat(3, 1fr); } }
+  .stat-band__value { display: block; font-family: var(--font-heading); font-size: var(--text-3xl); color: var(--color-burgundy); font-weight: 600; }
+  .stat-band__label { display: block; font-size: var(--text-sm); color: var(--color-charcoal-soft); text-transform: uppercase; letter-spacing: 0.1em; margin-top: var(--space-2); }
+  .map-embed { margin-top: var(--space-6); border-radius: var(--radius-lg); overflow: hidden; }
+  .export-reach { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-6); margin-top: var(--space-8); }
+  @media (min-width: 768px) { .export-reach { grid-template-columns: repeat(4, 1fr); } }
+  .export-reach__item { display: flex; flex-direction: column; align-items: center; gap: var(--space-2); padding: var(--space-6); border: 1px solid var(--color-border); border-radius: var(--radius-lg); color: var(--color-burgundy); }
+  .export-reach__label { font-size: var(--text-sm); font-weight: 500; }
+</style>
