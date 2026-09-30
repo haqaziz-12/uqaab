@@ -1,0 +1,128 @@
+---
+export interface Props {
+  settings?: any;
+  inquiryType?: 'general' | 'wholesale' | 'product' | 'export';
+  productSlug?: string;
+  productName?: string;
+}
+const { settings, inquiryType = 'general', productSlug, productName } = Astro.props;
+---
+
+<form class="contact-form" id="contact-form" method="POST" action="/api/inquiry" novalidate>
+  <div class="honeypot" aria-hidden="true">
+    <label for="website">Website (leave empty)</label>
+    <input type="text" id="website" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" />
+  </div>
+
+  <input type="hidden" name="inquiry_type" value={inquiryType} />
+  {productSlug && <input type="hidden" name="product_slug" value={productSlug} />}
+  {productName && <input type="hidden" name="product_name" value={productName} />}
+
+  <div class="grid grid--2">
+    <div class="form-group">
+      <label for="name" class="form-label">Full Name <span class="required" aria-hidden="true">*</span></label>
+      <input type="text" id="name" name="name" class="form-input" required aria-required="true" autocomplete="name" />
+      <span class="form-error" id="name-error" role="alert"></span>
+    </div>
+    <div class="form-group">
+      <label for="email" class="form-label">Email Address <span class="required" aria-hidden="true">*</span></label>
+      <input type="email" id="email" name="email" class="form-input" required aria-required="true" autocomplete="email" inputmode="email" />
+      <span class="form-error" id="email-error" role="alert"></span>
+    </div>
+  </div>
+
+  <div class="grid grid--2">
+    <div class="form-group">
+      <label for="company" class="form-label">Company (optional)</label>
+      <input type="text" id="company" name="company" class="form-input" autocomplete="organization" />
+    </div>
+    <div class="form-group">
+      <label for="phone" class="form-label">Phone (optional)</label>
+      <input type="tel" id="phone" name="phone" class="form-input" autocomplete="tel" inputmode="tel" />
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label for="subject" class="form-label">Subject</label>
+    <input type="text" id="subject" name="subject" class="form-input" />
+  </div>
+
+  <div class="form-group">
+    <label for="message" class="form-label">Message <span class="required" aria-hidden="true">*</span></label>
+    <textarea id="message" name="message" class="form-textarea" required aria-required="true" rows="5"></textarea>
+    <span class="form-error" id="message-error" role="alert"></span>
+  </div>
+
+  <div class="form-actions">
+    <button type="submit" class="btn btn-primary" id="submit-btn">
+      <span class="btn-text">Send Message</span>
+      <span class="spinner" id="form-spinner" style="display:none;"></span>
+    </button>
+  </div>
+  <div class="form-message" id="form-message" role="status" aria-live="polite"></div>
+</form>
+
+<script>
+  const form = document.getElementById('contact-form');
+  const submitBtn = document.getElementById('submit-btn');
+  const spinner = document.getElementById('form-spinner');
+  const messageDiv = document.getElementById('form-message');
+
+  function setError(fieldId, message) {
+    const errorSpan = document.getElementById(`${fieldId}-error`);
+    const input = document.getElementById(fieldId);
+    if (errorSpan) errorSpan.textContent = message;
+    if (input) input.setAttribute('aria-invalid', message ? 'true' : 'false');
+  }
+
+  function validate() {
+    let valid = true;
+    const name = document.getElementById('name').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const message = document.getElementById('message').value.trim();
+    setError('name', ''); setError('email', ''); setError('message', '');
+    if (!name) { setError('name', 'Please enter your name.'); valid = false; }
+    if (!email) { setError('email', 'Please enter your email.'); valid = false; }
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { setError('email', 'Please enter a valid email address.'); valid = false; }
+    if (!message) { setError('message', 'Please enter a message.'); valid = false; }
+    return valid;
+  }
+
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const honeypot = document.getElementById('website').value;
+    if (honeypot) return;
+    if (!validate()) return;
+    submitBtn.disabled = true;
+    submitBtn.querySelector('.btn-text').textContent = 'Sending...';
+    if (spinner) spinner.style.display = 'inline-block';
+    if (messageDiv) messageDiv.innerHTML = '';
+    const formData = new FormData(form);
+    const data = {};
+    formData.forEach((value, key) => { data[key] = value.toString(); });
+    try {
+      const response = await fetch('/api/inquiry', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+      const result = await response.json();
+      if (result.success) {
+        form.reset();
+        if (messageDiv) messageDiv.innerHTML = '<p class="form-success-msg">✓ Thank you! Your message has been sent. We will respond shortly.</p>';
+      } else {
+        if (messageDiv) messageDiv.innerHTML = `<p class="form-error-msg">Sorry, there was an error: ${result.error || 'Please try again.'}</p>`;
+      }
+    } catch (err) {
+      if (messageDiv) messageDiv.innerHTML = '<p class="form-error-msg">Sorry, something went wrong. Please try again or contact us via WhatsApp.</p>';
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.querySelector('.btn-text').textContent = 'Send Message';
+      if (spinner) spinner.style.display = 'none';
+    }
+  });
+</script>
+
+<style>
+  .honeypot { position: absolute; left: -9999px; top: -9999px; }
+  .form-actions { margin-top: var(--space-6); }
+  .form-message { margin-top: var(--space-4); }
+  .form-success-msg { color: var(--color-success); font-weight: 500; padding: var(--space-4); background-color: rgba(45,122,79,0.1); border-radius: var(--radius-md); }
+  .form-error-msg { color: var(--color-error); font-weight: 500; padding: var(--space-4); background-color: rgba(179,58,58,0.1); border-radius: var(--radius-md); }
+</style>
