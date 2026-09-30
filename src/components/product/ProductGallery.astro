@@ -1,0 +1,69 @@
+---
+import ImagePlaceholder from '../ui/ImagePlaceholder.astro';
+
+export interface Props {
+  frontImage?: string | null;
+  backImage?: string | null;
+  closeupImage?: string | null;
+  frontAlt?: string;
+  backAlt?: string;
+  closeupAlt?: string;
+}
+
+const { frontImage, backImage, closeupImage, frontAlt, backAlt, closeupAlt } = Astro.props;
+
+const slots = [
+  { key: 'front', src: frontImage, alt: frontAlt || 'Front view', label: 'Front View', color: 'beige' as const },
+  { key: 'back', src: backImage, alt: backAlt || 'Back view', label: 'Back View', color: 'ivory' as const },
+  { key: 'closeup', src: closeupImage, alt: closeupAlt || 'Close-up detail', label: 'Close-up Detail', color: 'gold' as const },
+];
+---
+
+<div class="product-gallery" id="product-gallery">
+  <div class="product-gallery__main">
+    {slots.map((slot, i) => (
+      <div class={`product-gallery__main-slot ${i === 0 ? 'is-active' : ''}`} data-slot={slot.key} role="img" aria-label={slot.alt}>
+        <ImagePlaceholder src={slot.src} alt={slot.alt} aspectRatio="4/3" color={slot.color} label={slot.label} loading={i === 0 ? 'eager' : 'lazy'} />
+      </div>
+    ))}
+  </div>
+  <div class="product-gallery__thumbs" role="tablist" aria-label="Product image views">
+    {slots.map((slot, i) => (
+      <button class={`product-gallery__thumb ${i === 0 ? 'is-active' : ''}`} data-target={slot.key} role="tab" aria-selected={i === 0 ? 'true' : 'false'} aria-label={`View ${slot.label}`}>
+        <ImagePlaceholder src={slot.src} alt={slot.alt} aspectRatio="1/1" color={slot.color} label={slot.label} />
+        <span class="product-gallery__thumb-label">{slot.label}</span>
+      </button>
+    ))}
+  </div>
+</div>
+
+<script>
+  const gallery = document.getElementById('product-gallery');
+  if (gallery) {
+    const thumbs = gallery.querySelectorAll('.product-gallery__thumb');
+    const mains = gallery.querySelectorAll('.product-gallery__main-slot');
+    thumbs.forEach((thumb) => {
+      thumb.addEventListener('click', () => {
+        const target = thumb.dataset.target;
+        thumbs.forEach((t) => { t.classList.remove('is-active'); t.setAttribute('aria-selected', 'false'); });
+        mains.forEach((m) => m.classList.remove('is-active'));
+        thumb.classList.add('is-active');
+        thumb.setAttribute('aria-selected', 'true');
+        const activeMain = gallery.querySelector(`.product-gallery__main-slot[data-slot="${target}"]`);
+        if (activeMain) activeMain.classList.add('is-active');
+      });
+    });
+  }
+</script>
+
+<style>
+  .product-gallery { display: flex; flex-direction: column; gap: var(--space-4); }
+  .product-gallery__main { position: relative; border-radius: var(--radius-lg); overflow: hidden; }
+  .product-gallery__main-slot { display: none; }
+  .product-gallery__main-slot.is-active { display: block; }
+  .product-gallery__thumbs { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-3); }
+  .product-gallery__thumb { position: relative; border: 2px solid var(--color-border); border-radius: var(--radius-md); overflow: hidden; cursor: pointer; padding: 0; background: none; transition: border-color var(--transition-fast); }
+  .product-gallery__thumb.is-active { border-color: var(--color-burgundy); }
+  .product-gallery__thumb:hover { border-color: var(--color-gold); }
+  .product-gallery__thumb-label { position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.6); color: white; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.05em; padding: 4px; text-align: center; }
+</style>
