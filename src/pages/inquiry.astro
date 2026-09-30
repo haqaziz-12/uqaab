@@ -1,0 +1,81 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ContactForm from '../components/forms/ContactForm.astro';
+import Icon from '../components/ui/Icon.astro';
+import { getSiteSettings } from '../lib/data';
+import { buildWhatsAppLink, buildWholesaleInquiryMessage } from '../lib/whatsapp';
+
+const settings = await getSiteSettings();
+const siteUrl = import.meta.env.PUBLIC_SITE_URL || 'https://uqaabcarpet.com';
+const whatsappLink = settings?.whatsapp_link || 'https://wa.me/93771444555';
+const whatsappUrl = buildWhatsAppLink(whatsappLink, buildWholesaleInquiryMessage());
+
+const seo = {
+  title: 'Trade Inquiry | Wholesale & Export | UQAAB CARPET',
+  description: 'Submit a trade inquiry for wholesale handmade Afghan carpets and international export. Bulk pricing, custom orders, and trade partnerships.',
+  canonical: `${siteUrl}/inquiry`,
+  ogType: 'website',
+};
+---
+
+<BaseLayout seo={seo} settings={settings}>
+  <div class="container">
+    <nav aria-label="Breadcrumb">
+      <ol class="breadcrumb">
+        <li><a href="/">Home</a></li>
+        <li aria-current="page">Trade Inquiry</li>
+      </ol>
+    </nav>
+  </div>
+
+  <section class="section">
+    <div class="container">
+      <div class="inquiry-page">
+        <div class="inquiry-page__info">
+          <h1>Trade Inquiry</h1>
+          <p class="inquiry-page__intro">
+            We welcome wholesale, export, and custom carpet inquiries from trade buyers worldwide.
+            Submit the form below and our team will respond with pricing and availability.
+          </p>
+
+          <div class="inquiry-page__points">
+            <div class="inquiry-point">
+              <Icon name="package" size={24} />
+              <div><h3>Wholesale Orders</h3><p>Bulk pricing for retailers and distributors.</p></div>
+            </div>
+            <div class="inquiry-point">
+              <Icon name="globe" size={24} />
+              <div><h3>International Export</h3><p>Shipping to the US, China, Europe, and UAE.</p></div>
+            </div>
+            <div class="inquiry-point">
+              <Icon name="edit" size={24} />
+              <div><h3>Custom Designs</h3><p>Bespoke carpets tailored to your specifications.</p></div>
+            </div>
+          </div>
+
+          <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" class="btn btn-whatsapp">
+            <Icon name="message-circle" size={18} /> Inquire via WhatsApp
+          </a>
+        </div>
+
+        <div class="inquiry-page__form">
+          <h2>Submit Your Inquiry</h2>
+          <ContactForm settings={settings} inquiryType="wholesale" />
+        </div>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .inquiry-page { display: grid; gap: var(--space-12); }
+  @media (min-width: 1024px) { .inquiry-page { grid-template-columns: 1fr 1fr; gap: var(--space-16); } }
+  .inquiry-page__intro { font-size: var(--text-lg); color: var(--color-charcoal-soft); margin-bottom: var(--space-8); }
+  .inquiry-page__points { display: flex; flex-direction: column; gap: var(--space-6); margin-bottom: var(--space-8); }
+  .inquiry-point { display: flex; gap: var(--space-4); align-items: flex-start; }
+  .inquiry-point svg { color: var(--color-gold); flex-shrink: 0; }
+  .inquiry-point h3 { font-size: var(--text-base); margin-bottom: var(--space-1); }
+  .inquiry-point p { font-size: var(--text-sm); color: var(--color-charcoal-soft); margin: 0; }
+  .inquiry-page__form { background-color: var(--color-white); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: var(--space-8); }
+  .inquiry-page__form h2 { margin-bottom: var(--space-6); }
+</style>
