@@ -1,0 +1,150 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import Icon from '../../components/ui/Icon.astro';
+import { createPublicServerClient } from '../../lib/supabase-server';
+
+const client = createPublicServerClient();
+const { data: settings } = await client.from('site_settings').select('*').eq('id', 1).single();
+
+const seo = { title: 'Site Settings — Admin', description: '', canonical: '' };
+---
+
+<AdminLayout seo={seo} title="Site Settings" activePage="settings" user={Astro.locals.user}>
+  <div class="admin-card">
+    <h2 class="admin-card__title">Company Information</h2>
+    <form id="settings-form">
+      <div class="admin-form-row">
+        <div class="admin-form-group">
+          <label class="admin-form-label" for="company_name">Company Name</label>
+          <input type="text" id="company_name" class="admin-form-input" value={settings?.company_name || ''} />
+        </div>
+        <div class="admin-form-group">
+          <label class="admin-form-label" for="legal_name">Legal Name</label>
+          <input type="text" id="legal_name" class="admin-form-input" value={settings?.legal_name || ''} />
+        </div>
+        <div class="admin-form-group">
+          <label class="admin-form-label" for="tagline">Tagline</label>
+          <input type="text" id="tagline" class="admin-form-input" value={settings?.tagline || ''} />
+        </div>
+      </div>
+
+      <div class="admin-form-row">
+        <div class="admin-form-group">
+          <label class="admin-form-label" for="founded_year">Founded Year</label>
+          <input type="number" id="founded_year" class="admin-form-input" value={settings?.founded_year || 2015} />
+        </div>
+        <div class="admin-form-group">
+          <label class="admin-form-label" for="headquarters">Headquarters</label>
+          <input type="text" id="headquarters" class="admin-form-input" value={settings?.headquarters || ''} />
+        </div>
+      </div>
+
+      <div class="admin-form-group">
+        <label class="admin-form-label" for="address">Address</label>
+        <textarea id="address" class="admin-form-textarea">{settings?.address || ''}</textarea>
+      </div>
+
+      <div class="admin-form-row">
+        <div class="admin-form-group">
+          <label class="admin-form-label" for="email">Email</label>
+          <input type="email" id="email" class="admin-form-input" value={settings?.email || ''} />
+        </div>
+        <div class="admin-form-group">
+          <label class="admin-form-label" for="whatsapp_number">WhatsApp Number</label>
+          <input type="text" id="whatsapp_number" class="admin-form-input" value={settings?.whatsapp_number || ''} />
+        </div>
+        <div class="admin-form-group">
+          <label class="admin-form-label" for="whatsapp_link">WhatsApp Link</label>
+          <input type="url" id="whatsapp_link" class="admin-form-input" value={settings?.whatsapp_link || ''} />
+        </div>
+      </div>
+
+      <div class="admin-form-row">
+        <div class="admin-form-group">
+          <label class="admin-form-label" for="facebook_url">Facebook URL</label>
+          <input type="url" id="facebook_url" class="admin-form-input" value={settings?.facebook_url || ''} />
+        </div>
+        <div class="admin-form-group">
+          <label class="admin-form-label" for="google_maps_link">Google Maps Link</label>
+          <input type="url" id="google_maps_link" class="admin-form-input" value={settings?.google_maps_link || ''} />
+        </div>
+        <div class="admin-form-group">
+          <label class="admin-form-label" for="logo_url">Logo URL</label>
+          <input type="url" id="logo_url" class="admin-form-input" value={settings?.logo_url || ''} />
+        </div>
+      </div>
+
+      <div class="admin-form-row">
+        <div class="admin-form-group">
+          <label class="admin-form-label" for="default_seo_title">Default SEO Title</label>
+          <input type="text" id="default_seo_title" class="admin-form-input" value={settings?.default_seo_title || ''} />
+        </div>
+        <div class="admin-form-group">
+          <label class="admin-form-label" for="default_seo_description">Default SEO Description</label>
+          <textarea id="default_seo_description" class="admin-form-textarea">{settings?.default_seo_description || ''}</textarea>
+        </div>
+      </div>
+
+      <div class="admin-form-actions">
+        <button type="submit" class="admin-btn admin-btn--primary" id="save-btn">
+          <Icon name="save" size={16} /> Save Settings
+        </button>
+      </div>
+    </form>
+    <div id="form-message" role="status" aria-live="polite"></div>
+  </div>
+</AdminLayout>
+
+<script>
+  const form = document.getElementById('settings-form');
+  const saveBtn = document.getElementById('save-btn');
+  const message = document.getElementById('form-message');
+
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    saveBtn.disabled = true;
+    saveBtn.textContent = 'Saving...';
+
+    const data = {
+      company_name: document.getElementById('company_name').value,
+      legal_name: document.getElementById('legal_name').value,
+      tagline: document.getElementById('tagline').value,
+      founded_year: parseInt(document.getElementById('founded_year').value) || 2015,
+      headquarters: document.getElementById('headquarters').value,
+      address: document.getElementById('address').value,
+      email: document.getElementById('email').value,
+      whatsapp_number: document.getElementById('whatsapp_number').value,
+      whatsapp_link: document.getElementById('whatsapp_link').value,
+      facebook_url: document.getElementById('facebook_url').value,
+      google_maps_link: document.getElementById('google_maps_link').value,
+      logo_url: document.getElementById('logo_url').value,
+      default_seo_title: document.getElementById('default_seo_title').value || null,
+      default_seo_description: document.getElementById('default_seo_description').value || null,
+    };
+
+    try {
+      const res = await fetch('/api/admin/settings', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      const result = await res.json();
+      if (result.success) {
+        message.innerHTML = '<p style="color: var(--color-success); padding: 8px;">✓ Settings saved successfully.</p>';
+      } else {
+        message.innerHTML = `<p style="color: var(--color-error); padding: 8px;">Error: ${result.error || 'Failed to save.'}</p>`;
+      }
+    } catch {
+      message.innerHTML = '<p style="color: var(--color-error); padding: 8px;">Network error.</p>';
+    } finally {
+      saveBtn.disabled = false;
+      saveBtn.textContent = 'Save Settings';
+    }
+  });
+</script>
+
+<style>
+  .admin-form-row { display: grid; grid-template-columns: 1fr; gap: var(--space-4); }
+  @media (min-width: 768px) { .admin-form-row { grid-template-columns: repeat(3, 1fr); } }
+  .admin-form-actions { display: flex; gap: var(--space-3); margin-top: var(--space-6); }
+</style>
