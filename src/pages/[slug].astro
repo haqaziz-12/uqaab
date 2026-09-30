@@ -1,0 +1,68 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageSectionRenderer from '../components/sections/PageSectionRenderer.astro';
+import ContactForm from '../components/forms/ContactForm.astro';
+import FAQAccordion from '../components/ui/FAQAccordion.astro';
+import { getSiteSettings, getPageBySlug, getPageSections, getFaqs } from '../lib/data';
+import { buildSeo } from '../lib/seo';
+
+const validSlugs = ['about', 'craft', 'services', 'wholesale-exports', 'faq', 'contact', 'privacy', 'terms'];
+const { slug } = Astro.params;
+
+if (!slug || !validSlugs.includes(slug)) {
+  return Astro.redirect('/404');
+}
+
+const settings = await getSiteSettings();
+const page = await getPageBySlug(slug);
+const sections = await getPageSections(slug);
+const faqs = slug === 'faq' ? await getFaqs() : [];
+const siteUrl = import.meta.env.PUBLIC_SITE_URL || 'https://uqaabcarpet.com';
+const seo = buildSeo(page, settings, siteUrl, `/${slug}`);
+---
+
+<BaseLayout seo={seo} settings={settings}>
+  <div class="container">
+    <nav aria-label="Breadcrumb">
+      <ol class="breadcrumb">
+        <li><a href="/">Home</a></li>
+        <li aria-current="page">{page?.title || slug}</li>
+      </ol>
+    </nav>
+  </div>
+
+  {sections.map((section) => (
+    <PageSectionRenderer section={section}>
+      {section.section_type === 'form_embed' && slug === 'contact' && (
+        <div slot="contact-form">
+          <ContactForm settings={settings} />
+        </div>
+      )}
+    </PageSectionRenderer>
+  ))}
+
+  {slug === 'faq' && faqs.length > 0 && (
+    <section class="section">
+      <div class="container">
+        <div class="faq-list">
+          {faqs.map((faq) => (
+            <FAQAccordion question={faq.question} answer={faq.answer} />
+          ))}
+        </div>
+      </div>
+    </section>
+  )}
+
+  {slug === 'contact' && !sections.some(s => s.section_type === 'form_embed') && (
+    <section class="section">
+      <div class="container">
+        <h2 class="section__heading">Send Us a Message</h2>
+        <ContactForm settings={settings} />
+      </div>
+    </section>
+  )}
+</BaseLayout>
+
+<style>
+  .faq-list { max-width: 800px; margin: 0 auto; }
+</style>
