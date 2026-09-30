@@ -1,0 +1,210 @@
+---
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import Icon from '../../../components/ui/Icon.astro';
+import { createPublicServerClient } from '../../../lib/supabase-server';
+
+const client = createPublicServerClient();
+const { data: collections } = await client.from('collections').select('name').eq('status', 'published').order('name');
+const { data: existing } = await client.from('products').select('product_id').order('product_id', { ascending: false }).limit(1);
+const nextId = existing && existing[0]?.product_id
+  ? `UC-${String(parseInt(existing[0].product_id.replace('UC-', '')) + 1).padStart(3, '0')}`
+  : 'UC-016';
+
+const seo = { title: 'New Product — Admin', description: '', canonical: '' };
+---
+
+<AdminLayout seo={seo} title="New Product" activePage="products" user={Astro.locals.user}>
+  <div class="admin-card">
+    <div class="admin-card__header">
+      <h2 class="admin-card__title">Create New Product</h2>
+      <a href="/admin/products" class="admin-btn admin-btn--ghost">
+        <Icon name="arrow-left" size={16} /> Back
+      </a>
+    </div>
+
+    <form id="product-form">
+      <div class="admin-form-row">
+        <div class="admin-form-group">
+          <label class="admin-form-label" for="product_id">Product ID</label>
+          <input type="text" id="product_id" class="admin-form-input" value={nextId} readonly />
+        </div>
+        <div class="admin-form-group">
+          <label class="admin-form-label" for="slug">Slug (URL)</label>
+          <input type="text" id="slug" class="admin-form-input" placeholder="e.g. heritage-burgundy-classic" required />
+        </div>
+        <div class="admin-form-group">
+          <label class="admin-form-label" for="name">Product Name</label>
+          <input type="text" id="name" class="admin-form-input" required />
+        </div>
+      </div>
+
+      <div class="admin-form-row">
+        <div class="admin-form-group">
+          <label class="admin-form-label" for="collection_type">Collection Type</label>
+          <select id="collection_type" class="admin-form-select">
+            <option value="">— Select —</option>
+            {collections?.map((c) => <option value={c.name}>{c.name}</option>)}
+          </select>
+        </div>
+        <div class="admin-form-group">
+          <label class="admin-form-label" for="category">Category</label>
+          <input type="text" id="category" class="admin-form-input" placeholder="e.g. Hand-Knotted, Kilim" />
+        </div>
+        <div class="admin-form-group">
+          <label class="admin-form-label" for="country_origin">Country of Origin</label>
+          <input type="text" id="country_origin" class="admin-form-input" value="Afghanistan" />
+        </div>
+      </div>
+
+      <div class="admin-form-row">
+        <div class="admin-form-group">
+          <label class="admin-form-label" for="size">Size</label>
+          <input type="text" id="size" class="admin-form-input" placeholder="e.g. 200 x 300 cm" />
+        </div>
+        <div class="admin-form-group">
+          <label class="admin-form-label" for="quality">Quality</label>
+          <input type="text" id="quality" class="admin-form-input" />
+        </div>
+        <div class="admin-form-group">
+          <label class="admin-form-label" for="material">Material</label>
+          <input type="text" id="material" class="admin-form-input" placeholder="e.g. Hand-spun wool" />
+        </div>
+        <div class="admin-form-group">
+          <label class="admin-form-label" for="pile_type">Pile Type</label>
+          <input type="text" id="pile_type" class="admin-form-input" />
+        </div>
+      </div>
+
+      <div class="admin-form-group">
+        <label class="admin-form-label" for="description">Description</label>
+        <textarea id="description" class="admin-form-textarea" rows="4"></textarea>
+      </div>
+
+      <h3 style="margin-top: 24px; margin-bottom: 16px;">Product Images</h3>
+      <p style="font-size:0.875rem;color:var(--color-charcoal-soft);margin-bottom:16px;">
+        Each image slot is independent. Leave empty for solid-color placeholder.
+      </p>
+
+      <div class="admin-form-row">
+        <div class="admin-form-group">
+          <label class="admin-form-label">Front View Image URL</label>
+          <input type="url" id="image_front" class="admin-form-input" placeholder="Upload or paste URL" />
+          <label class="admin-form-label" for="image_front_alt" style="margin-top:8px;">Front View Alt Text</label>
+          <input type="text" id="image_front_alt" class="admin-form-input" />
+        </div>
+        <div class="admin-form-group">
+          <label class="admin-form-label">Back View Image URL</label>
+          <input type="url" id="image_back" class="admin-form-input" placeholder="Upload or paste URL" />
+          <label class="admin-form-label" for="image_back_alt" style="margin-top:8px;">Back View Alt Text</label>
+          <input type="text" id="image_back_alt" class="admin-form-input" />
+        </div>
+        <div class="admin-form-group">
+          <label class="admin-form-label">Close-up Detail Image URL</label>
+          <input type="url" id="image_closeup" class="admin-form-input" placeholder="Upload or paste URL" />
+          <label class="admin-form-label" for="image_closeup_alt" style="margin-top:8px;">Close-up Alt Text</label>
+          <input type="text" id="image_closeup_alt" class="admin-form-input" />
+        </div>
+      </div>
+
+      <div class="admin-form-row">
+        <div class="admin-form-group">
+          <label class="admin-form-label" for="featured">Featured</label>
+          <select id="featured" class="admin-form-select">
+            <option value="false">No</option>
+            <option value="true">Yes</option>
+          </select>
+        </div>
+        <div class="admin-form-group">
+          <label class="admin-form-label" for="sort_order">Sort Order</label>
+          <input type="number" id="sort_order" class="admin-form-input" value="16" />
+        </div>
+        <div class="admin-form-group">
+          <label class="admin-form-label" for="status">Status</label>
+          <select id="status" class="admin-form-select">
+            <option value="published">Published</option>
+            <option value="draft">Draft</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="admin-form-row">
+        <div class="admin-form-group">
+          <label class="admin-form-label" for="seo_title">SEO Title</label>
+          <input type="text" id="seo_title" class="admin-form-input" />
+        </div>
+        <div class="admin-form-group">
+          <label class="admin-form-label" for="seo_description">SEO Description</label>
+          <textarea id="seo_description" class="admin-form-textarea" rows="2"></textarea>
+        </div>
+      </div>
+
+      <div class="admin-form-actions">
+        <button type="submit" class="admin-btn admin-btn--primary" id="save-btn">
+          <Icon name="plus" size={16} /> Create Product
+        </button>
+        <a href="/admin/products" class="admin-btn admin-btn--ghost">Cancel</a>
+      </div>
+    </form>
+    <div id="form-message" role="status" aria-live="polite"></div>
+  </div>
+</AdminLayout>
+
+<script>
+  const form = document.getElementById('product-form');
+  const saveBtn = document.getElementById('save-btn');
+  const message = document.getElementById('form-message');
+
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    saveBtn.disabled = true;
+    saveBtn.textContent = 'Creating...';
+
+    const data = {
+      product_id: document.getElementById('product_id').value,
+      slug: document.getElementById('slug').value,
+      name: document.getElementById('name').value,
+      collection_type: document.getElementById('collection_type').value || null,
+      category: document.getElementById('category').value || null,
+      size: document.getElementById('size').value || null,
+      quality: document.getElementById('quality').value || null,
+      material: document.getElementById('material').value || null,
+      pile_type: document.getElementById('pile_type').value || null,
+      description: document.getElementById('description').value || null,
+      country_origin: document.getElementById('country_origin').value || 'Afghanistan',
+      price_display: 'Price on enquiry',
+      image_front: document.getElementById('image_front').value || null,
+      image_back: document.getElementById('image_back').value || null,
+      image_closeup: document.getElementById('image_closeup').value || null,
+      image_front_alt: document.getElementById('image_front_alt').value || null,
+      image_back_alt: document.getElementById('image_back_alt').value || null,
+      image_closeup_alt: document.getElementById('image_closeup_alt').value || null,
+      featured: document.getElementById('featured').value === 'true',
+      sort_order: parseInt(document.getElementById('sort_order').value) || 0,
+      status: document.getElementById('status').value,
+      seo_title: document.getElementById('seo_title').value || null,
+      seo_description: document.getElementById('seo_description').value || null,
+    };
+
+    try {
+      const res = await fetch('/api/admin/product', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      const result = await res.json();
+      if (result.success) location.href = '/admin/products';
+      else message.innerHTML = `<p style="color:var(--color-error);">Error: ${result.error}</p>`;
+    } catch {
+      message.innerHTML = '<p style="color:var(--color-error);">Network error.</p>';
+    } finally {
+      saveBtn.disabled = false;
+      saveBtn.textContent = 'Create Product';
+    }
+  });
+</script>
+
+<style>
+  .admin-form-row { display: grid; grid-template-columns: 1fr; gap: var(--space-4); }
+  @media (min-width: 768px) { .admin-form-row { grid-template-columns: repeat(3, 1fr); } }
+  .admin-form-actions { display: flex; gap: var(--space-3); margin-top: var(--space-6); }
+</style>
