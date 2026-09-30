@@ -1,0 +1,72 @@
+---
+import '../styles/global.css';
+import type { SeoMeta } from '../lib/seo';
+import Header from '../components/layout/Header.astro';
+import Footer from '../components/layout/Footer.astro';
+
+export interface Props {
+  seo: SeoMeta;
+  settings?: any;
+  isAdmin?: boolean;
+}
+
+const { seo, settings, isAdmin = false } = Astro.props;
+const siteUrl = import.meta.env.PUBLIC_SITE_URL || 'https://uqaabcarpet.com';
+
+const orgSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  name: settings?.company_name || 'UQAAB CARPET',
+  legalName: settings?.legal_name || 'Uqaab Nawin Afghanistan Ltd.',
+  url: siteUrl,
+  email: settings?.email || 'uqaab.carpet@yahoo.com',
+  foundingDate: String(settings?.founded_year || '2015'),
+  address: { '@type': 'PostalAddress', streetAddress: settings?.address || '', addressCountry: 'AF' },
+  sameAs: [settings?.facebook_url].filter(Boolean),
+};
+
+const allSchemas = [orgSchema, ...(seo.structuredData || [])];
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{seo.title}</title>
+    <meta name="description" content={seo.description} />
+    <link rel="canonical" href={seo.canonical} />
+
+    <meta property="og:title" content={seo.title} />
+    <meta property="og:description" content={seo.description} />
+    <meta property="og:url" content={seo.canonical} />
+    <meta property="og:type" content={seo.ogType || 'website'} />
+    {seo.ogImage && <meta property="og:image" content={seo.ogImage} />}
+    <meta property="og:site_name" content="UQAAB CARPET" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={seo.title} />
+    <meta name="twitter:description" content={seo.description} />
+    {seo.ogImage && <meta name="twitter:image" content={seo.ogImage} />}
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+    {allSchemas.map((schema) => (
+      <script type="application/ld+json" set:html={JSON.stringify(schema)} />
+    ))}
+
+    {isAdmin && <meta name="robots" content="noindex, nofollow" />}
+  </head>
+  <body>
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+    <Header settings={settings} isAdmin={isAdmin} />
+    <main id="main-content">
+      <slot />
+    </main>
+    <Footer settings={settings} />
+  </body>
+</html>
