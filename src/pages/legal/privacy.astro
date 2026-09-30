@@ -1,0 +1,93 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getSiteSettings } from '../../lib/data';
+
+const settings = await getSiteSettings();
+const siteUrl = import.meta.env.PUBLIC_SITE_URL || 'https://uqaabcarpet.com';
+const companyName = settings?.company_name || 'UQAAB CARPET';
+const legalName = settings?.legal_name || 'Uqaab Nawin Afghanistan Ltd.';
+const email = settings?.email || 'uqaab.carpet@yahoo.com';
+
+const seo = {
+  title: 'Privacy Policy | UQAAB CARPET',
+  description: 'Privacy policy for the UQAAB CARPET website — how we handle your data and protect your privacy.',
+  canonical: `${siteUrl}/legal/privacy`,
+  ogType: 'website',
+};
+---
+
+<BaseLayout seo={seo} settings={settings}>
+  <div class="container">
+    <nav aria-label="Breadcrumb">
+      <ol class="breadcrumb">
+        <li><a href="/">Home</a></li>
+        <li aria-current="page">Privacy Policy</li>
+      </ol>
+    </nav>
+  </div>
+
+  <section class="section">
+    <div class="container">
+      <div class="legal-content">
+        <h1>Privacy Policy</h1>
+        <p class="legal-updated">Last updated: {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+
+        <div class="legal-warning">
+          <strong>Note:</strong> This is a template privacy policy. It must be reviewed and approved by the company's legal advisor before launch.
+        </div>
+
+        <h2>1. Introduction</h2>
+        <p>{legalName} ("we", "us", "our") operates the {companyName} website. This privacy policy explains how we collect, use, and protect your personal information when you visit our website.</p>
+
+        <h2>2. Information We Collect</h2>
+        <p>We collect information that you provide directly to us through our contact and inquiry forms, including:</p>
+        <ul>
+          <li>Your name</li>
+          <li>Your email address</li>
+          <li>Your phone number (if provided)</li>
+          <li>Your company name (if provided)</li>
+          <li>Your message or inquiry details</li>
+        </ul>
+        <p>We may also collect anonymous usage data through privacy-conscious analytics.</p>
+
+        <h2>3. How We Use Your Information</h2>
+        <p>We use the information you provide to:</p>
+        <ul>
+          <li>Respond to your inquiries and requests for quotations.</li>
+          <li>Communicate with you about our products and services.</li>
+          <li>Improve our website and services.</li>
+        </ul>
+
+        <h2>4. Information Sharing</h2>
+        <p>We do not sell, rent, or trade your personal information. We may share your information with third-party service providers who help us operate our website (e.g., hosting, analytics), but only as necessary to provide those services and under appropriate confidentiality obligations.</p>
+
+        <h2>5. Data Storage</h2>
+        <p>Your inquiry data is stored securely in our database. We retain inquiry submissions for a reasonable period to respond to and follow up on your requests.</p>
+
+        <h2>6. Cookies</h2>
+        <p>Our website may use essential cookies for functionality. We use privacy-conscious analytics that do not require cookies where possible.</p>
+
+        <h2>7. Your Rights</h2>
+        <p>You have the right to request access to, correction of, or deletion of your personal information. To exercise these rights, please contact us at {email}.</p>
+
+        <h2>8. Security</h2>
+        <p>We implement reasonable technical and organizational measures to protect your personal information. However, no method of transmission over the internet is completely secure.</p>
+
+        <h2>9. Changes to This Policy</h2>
+        <p>We may update this privacy policy from time to time. We will post any changes on this page with an updated revision date.</p>
+
+        <h2>10. Contact Us</h2>
+        <p>If you have questions about this privacy policy, please contact us at {email}.</p>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .legal-content { max-width: 800px; }
+  .legal-updated { color: var(--color-charcoal-soft); font-size: var(--text-sm); margin-bottom: var(--space-8); }
+  .legal-warning { background-color: rgba(184,149,74,0.1); border: 1px solid var(--color-gold); border-radius: var(--radius-md); padding: var(--space-4); margin-bottom: var(--space-8); font-size: var(--text-sm); }
+  .legal-content h2 { font-size: var(--text-xl); margin-top: var(--space-8); margin-bottom: var(--space-4); }
+  .legal-content ul { margin-bottom: var(--space-4); padding-left: var(--space-6); }
+  .legal-content li { margin-bottom: var(--space-2); }
+</style>
