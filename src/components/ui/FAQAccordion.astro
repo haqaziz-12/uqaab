@@ -1,0 +1,26 @@
+---
+export interface Props { question: string; answer: string; }
+const { question, answer } = Astro.props;
+const id = `faq-${Math.random().toString(36).slice(2, 9)}`;
+---
+
+<div class="accordion-item">
+  <button class="accordion-trigger" aria-expanded="false" aria-controls={`${id}-panel`} id={`${id}-trigger`}>
+    <span>{question}</span>
+    <svg class="accordion-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
+  </button>
+  <div class="accordion-panel" id={`${id}-panel`} role="region" aria-labelledby={`${id}-trigger`} hidden>
+    <p>{answer}</p>
+  </div>
+</div>
+
+<script>
+  document.querySelectorAll('.accordion-trigger').forEach((trigger) => {
+    trigger.addEventListener('click', () => {
+      const expanded = trigger.getAttribute('aria-expanded') === 'true';
+      const panel = document.getElementById(trigger.getAttribute('aria-controls') || '');
+      trigger.setAttribute('aria-expanded', String(!expanded));
+      if (panel) panel.hidden = expanded;
+    });
+  });
+</script>
