@@ -1,0 +1,153 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ProductCard from '../../components/product/ProductCard.astro';
+import Icon from '../../components/ui/Icon.astro';
+import { getSiteSettings, getPageBySlug, getProducts, getCollections } from '../../lib/data';
+import { buildSeo } from '../../lib/seo';
+
+const settings = await getSiteSettings();
+const page = await getPageBySlug('products');
+const products = await getProducts();
+const collections = await getCollections();
+const siteUrl = import.meta.env.PUBLIC_SITE_URL || 'https://uqaabcarpet.com';
+const seo = buildSeo(page, settings, siteUrl, '/products');
+
+const categories = [...new Set(products.map(p => p.category).filter(Boolean))].sort();
+---
+
+<BaseLayout seo={seo} settings={settings}>
+  <div class="container">
+    <nav aria-label="Breadcrumb">
+      <ol class="breadcrumb">
+        <li><a href="/">Home</a></li>
+        <li aria-current="page">Our Products</li>
+      </ol>
+    </nav>
+  </div>
+
+  <section class="section">
+    <div class="container">
+      <div class="products-header">
+        <div>
+          <h1>Our Products</h1>
+          <p class="products-header__sub">
+            Browse our collection of handmade Afghan carpets. Each piece is crafted by skilled artisans in Kabul.
+            All prices are on enquiry — contact us for a quotation.
+          </p>
+        </div>
+        <a href="/inquiry" class="btn btn-primary"><Icon name="mail" size={18} /> Request a Quote</a>
+      </div>
+
+      <div class="filters" id="product-filters">
+        <div class="filters__search">
+          <Icon name="search" size={18} class="filters__search-icon" />
+          <input type="search" id="product-search" class="form-input filters__search-input" placeholder="Search carpets..." aria-label="Search products" />
+        </div>
+        <div class="filters__selects">
+          <select id="filter-category" class="form-select" aria-label="Filter by category">
+            <option value="">All Categories</option>
+            {categories.map((cat) => <option value={cat}>{cat}</option>)}
+          </select>
+          <select id="filter-collection" class="form-select" aria-label="Filter by collection">
+            <option value="">All Collections</option>
+            {collections.map((col) => <option value={col.name}>{col.name}</option>)}
+          </select>
+          <select id="sort-by" class="form-select" aria-label="Sort products">
+            <option value="sort_order">Default</option>
+            <option value="name-asc">Name (A–Z)</option>
+            <option value="name-desc">Name (Z–A)</option>
+          </select>
+        </div>
+      </div>
+
+      {products.length === 0 ? (
+        <div class="empty-state">
+          <Icon name="package" size={48} />
+          <h2>No products available</h2>
+          <p>Products will appear here once they are added.</p>
+        </div>
+      ) : (
+        <div class="grid grid--4" id="product-grid">
+          {products.map((product) => (
+            <div class="product-card-wrapper" data-name={product.name.toLowerCase()} data-category={product.category || ''} data-collection={product.collection_type || ''} data-sort={product.sort_order}>
+              <ProductCard product={product} />
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div class="empty-state" id="no-results" hidden>
+        <Icon name="search" size={48} />
+        <h2>No products match your filters</h2>
+        <p>Try adjusting your search or filters.</p>
+        <button class="btn btn-secondary" id="reset-filters">Clear Filters</button>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<script>
+  const search = document.getElementById('product-search');
+  const filterCategory = document.getElementById('filter-category');
+  const filterCollection = document.getElementById('filter-collection');
+  const sortBy = document.getElementById('sort-by');
+  const grid = document.getElementById('product-grid');
+  const noResults = document.getElementById('no-results');
+  const resetBtn = document.getElementById('reset-filters');
+
+  function applyFilters() {
+    if (!grid) return;
+    const cards = Array.from(grid.querySelectorAll('.product-card-wrapper'));
+    const searchTerm = search.value.toLowerCase().trim();
+    const cat = filterCategory.value;
+    const col = filterCollection.value;
+    let visibleCount = 0;
+
+    cards.forEach((card) => {
+      const name = card.dataset.name || '';
+      const cardCat = card.dataset.category || '';
+      const cardCol = card.dataset.collection || '';
+      const matchesSearch = !searchTerm || name.includes(searchTerm);
+      const matchesCat = !cat || cardCat === cat;
+      const matchesCol = !col || cardCol === col;
+      const visible = matchesSearch && matchesCat && matchesCol;
+      card.style.display = visible ? '' : 'none';
+      if (visible) visibleCount++;
+    });
+
+    const sortVal = sortBy.value;
+    cards.sort((a, b) => {
+      if (sortVal === 'name-asc') return (a.dataset.name || '').localeCompare(b.dataset.name || '');
+      if (sortVal === 'name-desc') return (b.dataset.name || '').localeCompare(a.dataset.name || '');
+      return parseInt(a.dataset.sort || '0') - parseInt(b.dataset.sort || '0');
+    });
+    cards.forEach((card) => grid.appendChild(card));
+
+    if (noResults) noResults.hidden = visibleCount > 0;
+    if (grid) grid.style.display = visibleCount > 0 ? '' : 'none';
+  }
+
+  search?.addEventListener('input', applyFilters);
+  filterCategory?.addEventListener('change', applyFilters);
+  filterCollection?.addEventListener('change', applyFilters);
+  sortBy?.addEventListener('change', applyFilters);
+  resetBtn?.addEventListener('click', () => {
+    search.value = ''; filterCategory.value = ''; filterCollection.value = ''; sortBy.value = 'sort_order';
+    applyFilters();
+  });
+</script>
+
+<style>
+  .products-header { display: flex; flex-direction: column; gap: var(--space-4); margin-bottom: var(--space-8); }
+  @media (min-width: 768px) { .products-header { flex-direction: row; justify-content: space-between; align-items: flex-start; } }
+  .products-header__sub { color: var(--color-charcoal-soft); max-width: 600px; }
+  .filters { display: flex; flex-direction: column; gap: var(--space-4); margin-bottom: var(--space-8); padding: var(--space-6); background-color: var(--color-white); border: 1px solid var(--color-border); border-radius: var(--radius-lg); }
+  @media (min-width: 768px) { .filters { flex-direction: row; align-items: center; } }
+  .filters__search { position: relative; flex: 1; }
+  .filters__search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--color-charcoal-soft); pointer-events: none; }
+  .filters__search-input { padding-left: 40px; }
+  .filters__selects { display: flex; flex-wrap: wrap; gap: var(--space-3); }
+  .filters__selects select { min-width: 140px; }
+  .empty-state { text-align: center; padding: var(--space-16) 0; color: var(--color-charcoal-soft); }
+  .empty-state svg { color: var(--color-border); margin-bottom: var(--space-4); }
+</style>
