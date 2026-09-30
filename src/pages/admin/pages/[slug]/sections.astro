@@ -1,0 +1,78 @@
+---
+import AdminLayout from '../../../../layouts/AdminLayout.astro';
+import Icon from '../../../../components/ui/Icon.astro';
+import { createPublicServerClient } from '../../../../lib/supabase-server';
+
+const { slug } = Astro.params;
+const client = createPublicServerClient();
+const { data: page } = await client.from('pages').select('*').eq('slug', slug).single();
+const { data: sections } = await client.from('page_sections').select('*').eq('page_slug', slug).order('sort_order', { ascending: true });
+
+if (!page) return Astro.redirect('/admin/pages');
+
+const seo = { title: `Sections: ${page.title} — Admin`, description: '', canonical: '' };
+---
+
+<AdminLayout seo={seo} title={`Sections: ${page.title}`} activePage="pages" user={Astro.locals.user}>
+  <div class="admin-card">
+    <div class="admin-card__header">
+      <h2 class="admin-card__title">Page Sections</h2>
+      <a href={`/admin/pages/${slug}/sections/new`} class="admin-btn admin-btn--primary">
+        <Icon name="plus" size={16} /> Add Section
+      </a>
+    </div>
+
+    {sections && sections.length > 0 ? (
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>Order</th><th>Type</th><th>Heading</th><th>Visible</th><th>Status</th><th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {sections.map((section) => (
+            <tr>
+              <td>{section.sort_order}</td>
+              <td><code>{section.section_type}</code></td>
+              <td>{section.heading || '—'}</td>
+              <td>{section.visible ? '✓' : '✗'}</td>
+              <td>
+                <span class={`admin-badge admin-badge--${section.status}`}>{section.status}</span>
+              </td>
+              <td>
+                <div style="display:flex;gap:4px;">
+                  <a href={`/admin/pages/${slug}/sections/${section.id}`} class="admin-btn admin-btn--ghost" style="padding:4px 8px;font-size:0.75rem;">
+                    <Icon name="edit" size={14} />
+                  </a>
+                  <button class="admin-btn admin-btn--danger delete-section" data-id={section.id} data-page-slug={slug} style="padding:4px 8px;font-size:0.75rem;">
+                    <Icon name="trash" size={14} />
+                  </button>
+                </div>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    ) : (
+      <p style="color: var(--color-charcoal-soft); text-align: center; padding: 24px;">
+        No sections yet. Click "Add Section" to create one.
+      </p>
+    )}
+  </div>
+</AdminLayout>
+
+<script>
+  document.querySelectorAll('.delete-section').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      if (!confirm('Delete this section? This cannot be undone.')) return;
+      const id = btn.dataset.id;
+      try {
+        const res = await fetch(`/api/admin/section/${id}`, { method: 'DELETE' });
+        if (res.ok) location.reload();
+        else alert('Failed to delete section.');
+      } catch {
+        alert('Network error.');
+      }
+    });
+  });
+</script>
