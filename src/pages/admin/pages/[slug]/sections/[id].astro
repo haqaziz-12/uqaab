@@ -1,0 +1,193 @@
+---
+import AdminLayout from '../../../../../layouts/AdminLayout.astro';
+import Icon from '../../../../../components/ui/Icon.astro';
+import { createPublicServerClient } from '../../../../../lib/supabase-server';
+
+const { slug, id } = Astro.params;
+const client = createPublicServerClient();
+
+const isNew = id === 'new';
+
+let section: any = {
+  section_type: 'text_block', heading: '', subheading: '', body: '',
+  image_url: '', image_alt: '', image_caption: '', link_label: '',
+  link_url: '', content_json: {}, sort_order: 0, visible: true, status: 'published',
+};
+
+if (!isNew) {
+  const { data } = await client.from('page_sections').select('*').eq('id', id).single();
+  if (!data) return Astro.redirect(`/admin/pages/${slug}/sections`);
+  section = data;
+}
+
+const seo = { title: isNew ? 'New Section — Admin' : 'Edit Section — Admin', description: '', canonical: '' };
+
+const sectionTypes = [
+  'hero', 'text_block', 'image_text', 'card_grid', 'cta_band',
+  'stat_band', 'faq_list', 'map_embed', 'form_embed', 'export_reach'
+];
+---
+
+<AdminLayout seo={seo} title={isNew ? 'New Section' : 'Edit Section'} activePage="pages" user={Astro.locals.user}>
+  <div class="admin-card">
+    <div class="admin-card__header">
+      <h2 class="admin-card__title">{isNew ? 'Create Section' : 'Edit Section'}</h2>
+      <a href={`/admin/pages/${slug}/sections`} class="admin-btn admin-btn--ghost">
+        <Icon name="arrow-left" size={16} /> Back to Sections
+      </a>
+    </div>
+
+    <form id="section-form" data-id={id} data-slug={slug}>
+      <div class="admin-form-group">
+        <label class="admin-form-label" for="section_type">Section Type</label>
+        <select id="section_type" name="section_type" class="admin-form-select">
+          {sectionTypes.map((type) => (
+            <option value={type} selected={section.section_type === type}>{type}</option>
+          ))}
+        </select>
+      </div>
+
+      <div class="admin-form-group">
+        <label class="admin-form-label" for="heading">Heading</label>
+        <input type="text" id="heading" name="heading" class="admin-form-input" value={section.heading || ''} />
+      </div>
+
+      <div class="admin-form-group">
+        <label class="admin-form-label" for="subheading">Subheading</label>
+        <input type="text" id="subheading" name="subheading" class="admin-form-input" value={section.subheading || ''} />
+      </div>
+
+      <div class="admin-form-group">
+        <label class="admin-form-label" for="body">Body (rich text)</label>
+        <textarea id="body" name="body" class="admin-form-textarea" rows="6">{section.body || ''}</textarea>
+      </div>
+
+      <div class="admin-form-group">
+        <label class="admin-form-label" for="image_url">Image URL</label>
+        <input type="url" id="image_url" name="image_url" class="admin-form-input" value={section.image_url || ''} placeholder="Leave empty for solid-color placeholder" />
+        <p style="font-size:0.75rem;color:var(--color-charcoal-soft);margin-top:4px;">Leave empty to show a solid-color placeholder. Upload an image to replace it.</p>
+      </div>
+
+      <div class="admin-form-group">
+        <label class="admin-form-label" for="image_alt">Image Alt Text</label>
+        <input type="text" id="image_alt" name="image_alt" class="admin-form-input" value={section.image_alt || ''} />
+      </div>
+
+      <div class="admin-form-group">
+        <label class="admin-form-label" for="image_caption">Image Caption</label>
+        <input type="text" id="image_caption" name="image_caption" class="admin-form-input" value={section.image_caption || ''} />
+      </div>
+
+      <div class="admin-form-group">
+        <label class="admin-form-label" for="link_label">Button Label</label>
+        <input type="text" id="link_label" name="link_label" class="admin-form-input" value={section.link_label || ''} />
+      </div>
+
+      <div class="admin-form-group">
+        <label class="admin-form-label" for="link_url">Button URL</label>
+        <input type="text" id="link_url" name="link_url" class="admin-form-input" value={section.link_url || ''} />
+      </div>
+
+      <div class="admin-form-group">
+        <label class="admin-form-label" for="content_json">Content JSON (for card_grid, stat_band)</label>
+        <textarea id="content_json" name="content_json" class="admin-form-textarea" rows="4">{section.content_json ? JSON.stringify(section.content_json, null, 2) : ''}</textarea>
+        <p style="font-size:0.75rem;color:var(--color-charcoal-soft);margin-top:4px;">JSON format for cards: {"cards": [{"title": "...", "description": "..."}]}</p>
+      </div>
+
+      <div class="admin-form-row">
+        <div class="admin-form-group">
+          <label class="admin-form-label" for="sort_order">Sort Order</label>
+          <input type="number" id="sort_order" name="sort_order" class="admin-form-input" value={section.sort_order || 0} />
+        </div>
+        <div class="admin-form-group">
+          <label class="admin-form-label" for="visible">Visible</label>
+          <select id="visible" name="visible" class="admin-form-select">
+            <option value="true" selected={section.visible !== false}>Yes</option>
+            <option value="false" selected={section.visible === false}>No</option>
+          </select>
+        </div>
+        <div class="admin-form-group">
+          <label class="admin-form-label" for="status">Status</label>
+          <select id="status" name="status" class="admin-form-select">
+            <option value="published" selected={section.status === 'published'}>Published</option>
+            <option value="draft" selected={section.status === 'draft'}>Draft</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="admin-form-actions">
+        <button type="submit" class="admin-btn admin-btn--primary" id="save-btn">
+          <Icon name="save" size={16} /> {isNew ? 'Create Section' : 'Save Changes'}
+        </button>
+        <a href={`/admin/pages/${slug}/sections`} class="admin-btn admin-btn--ghost">Cancel</a>
+      </div>
+    </form>
+
+    <div id="form-message" role="status" aria-live="polite"></div>
+  </div>
+</AdminLayout>
+
+<script define:vars={{ id, slug, isNew }}>
+  const form = document.getElementById('section-form');
+  const saveBtn = document.getElementById('save-btn');
+  const message = document.getElementById('form-message');
+
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    saveBtn.disabled = true;
+    saveBtn.textContent = 'Saving...';
+
+    let contentJson = {};
+    const jsonStr = document.getElementById('content_json').value;
+    if (jsonStr.trim()) {
+      try { contentJson = JSON.parse(jsonStr); }
+      catch { message.innerHTML = '<p style="color:var(--color-error);">Invalid JSON in Content JSON field.</p>'; saveBtn.disabled = false; saveBtn.textContent = isNew ? 'Create Section' : 'Save Changes'; return; }
+    }
+
+    const data = {
+      page_slug: slug,
+      section_type: document.getElementById('section_type').value,
+      heading: document.getElementById('heading').value || null,
+      subheading: document.getElementById('subheading').value || null,
+      body: document.getElementById('body').value || null,
+      image_url: document.getElementById('image_url').value || null,
+      image_alt: document.getElementById('image_alt').value || null,
+      image_caption: document.getElementById('image_caption').value || null,
+      link_label: document.getElementById('link_label').value || null,
+      link_url: document.getElementById('link_url').value || null,
+      content_json: contentJson,
+      sort_order: parseInt(document.getElementById('sort_order').value) || 0,
+      visible: document.getElementById('visible').value === 'true',
+      status: document.getElementById('status').value,
+    };
+
+    try {
+      const url = isNew ? '/api/admin/section' : `/api/admin/section/${id}`;
+      const method = isNew ? 'POST' : 'PUT';
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      const result = await res.json();
+
+      if (result.success) {
+        message.innerHTML = '<p style="color:var(--color-success);padding:8px;">✓ Saved successfully.</p>';
+        if (isNew) setTimeout(() => location.href = `/admin/pages/${slug}/sections`, 1000);
+      } else {
+        message.innerHTML = `<p style="color:var(--color-error);padding:8px;">Error: ${result.error || 'Failed to save.'}</p>`;
+      }
+    } catch {
+      message.innerHTML = '<p style="color:var(--color-error);padding:8px;">Network error.</p>';
+    } finally {
+      saveBtn.disabled = false;
+      saveBtn.textContent = isNew ? 'Create Section' : 'Save Changes';
+    }
+  });
+</script>
+
+<style>
+  .admin-form-row { display: grid; grid-template-columns: 1fr; gap: var(--space-4); }
+  @media (min-width: 768px) { .admin-form-row { grid-template-columns: repeat(3, 1fr); } }
+  .admin-form-actions { display: flex; gap: var(--space-3); margin-top: var(--space-6); }
+</style>
