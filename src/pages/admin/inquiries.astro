@@ -1,0 +1,46 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import { createPublicServerClient } from '../../lib/supabase-server';
+
+const client = createPublicServerClient();
+const { data: inquiries } = await client.from('inquiries').select('*').order('created_at', { ascending: false });
+
+const seo = { title: 'Inquiries — Admin', description: '', canonical: '' };
+---
+
+<AdminLayout seo={seo} title="Inquiries" activePage="inquiries" user={Astro.locals.user}>
+  <div class="admin-card">
+    <div class="admin-card__header">
+      <h2 class="admin-card__title">Customer Inquiries ({inquiries?.length || 0})</h2>
+    </div>
+
+    {inquiries && inquiries.length > 0 ? (
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>Name</th><th>Email</th><th>Company</th><th>Type</th>
+            <th>Product</th><th>Message</th><th>Status</th><th>Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          {inquiries.map((inq) => (
+            <tr>
+              <td>{inq.name}</td>
+              <td><a href={`mailto:${inq.email}`} style="color:var(--color-burgundy);">{inq.email}</a></td>
+              <td>{inq.company || '—'}</td>
+              <td>{inq.inquiry_type}</td>
+              <td>{inq.product_name || '—'}</td>
+              <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;">{inq.message}</td>
+              <td>
+                <span class={`admin-badge admin-badge--${inq.status === 'new' ? 'new' : 'published'}`}>{inq.status}</span>
+              </td>
+              <td>{new Date(inq.created_at).toLocaleDateString()}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    ) : (
+      <p style="color: var(--color-charcoal-soft); text-align: center; padding: 24px;">No inquiries yet.</p>
+    )}
+  </div>
+</AdminLayout>
