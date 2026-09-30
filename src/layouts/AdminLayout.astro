@@ -1,0 +1,139 @@
+---
+import Icon from '../components/ui/Icon.astro';
+
+export interface Props {
+  seo: any;
+  user?: any;
+  title: string;
+  activePage?: string;
+}
+
+const { seo, user, title, activePage = '' } = Astro.props;
+
+const navItems = [
+  { label: 'Dashboard', href: '/admin', icon: 'home' },
+  { label: 'Pages', href: '/admin/pages', icon: 'file-text' },
+  { label: 'Products', href: '/admin/products', icon: 'package' },
+  { label: 'Collections', href: '/admin/collections', icon: 'folder' },
+  { label: 'FAQs', href: '/admin/faqs', icon: 'list' },
+  { label: 'Inquiries', href: '/admin/inquiries', icon: 'inbox' },
+  { label: 'Site Settings', href: '/admin/settings', icon: 'settings' },
+];
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>{title} — UQAAB CARPET Admin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  </head>
+  <body class="admin-body">
+    <div class="admin-wrapper">
+      <aside class="admin-sidebar" id="admin-sidebar">
+        <div class="admin-sidebar__header">
+          <a href="/admin" class="admin-sidebar__logo">
+            <span class="admin-sidebar__logo-text">UQAAB</span>
+            <span class="admin-sidebar__logo-sub">Admin</span>
+          </a>
+        </div>
+        <nav class="admin-sidebar__nav" aria-label="Admin navigation">
+          {navItems.map((item) => (
+            <a href={item.href} class={`admin-nav-link ${activePage === item.label.toLowerCase() ? 'is-active' : ''}`}>
+              <Icon name={item.icon} size={20} />
+              <span>{item.label}</span>
+            </a>
+          ))}
+        </nav>
+        <div class="admin-sidebar__footer">
+          <a href="/" target="_blank" class="admin-nav-link">
+            <Icon name="external-link" size={20} />
+            <span>View Website</span>
+          </a>
+          <a href="/admin/logout" class="admin-nav-link admin-nav-link--danger">
+            <Icon name="log-out" size={20} />
+            <span>Logout</span>
+          </a>
+        </div>
+      </aside>
+
+      <div class="admin-main">
+        <header class="admin-header">
+          <button class="admin-header__toggle" id="sidebar-toggle" aria-label="Toggle sidebar">
+            <Icon name="menu" size={24} />
+          </button>
+          <h1 class="admin-header__title">{title}</h1>
+          <div class="admin-header__user">
+            {user?.email && <span class="admin-header__user-email">{user.email}</span>}
+          </div>
+        </header>
+        <main class="admin-content">
+          <slot />
+        </main>
+      </div>
+    </div>
+
+    <script>
+      const toggle = document.getElementById('sidebar-toggle');
+      const sidebar = document.getElementById('admin-sidebar');
+      toggle?.addEventListener('click', () => { sidebar?.classList.toggle('is-open'); });
+    </script>
+
+    <style is:global>
+      .admin-body { margin: 0; font-family: 'Inter', system-ui, sans-serif; background-color: #f5f5f0; color: #2B2B2B; }
+      .admin-wrapper { display: flex; min-height: 100vh; }
+      .admin-sidebar { width: 240px; background-color: #2B2B2B; color: #F8F4EC; display: flex; flex-direction: column; position: fixed; top: 0; left: 0; bottom: 0; z-index: 100; transition: transform 0.3s ease; }
+      .admin-sidebar__header { padding: 24px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+      .admin-sidebar__logo { text-decoration: none; display: flex; flex-direction: column; }
+      .admin-sidebar__logo-text { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 1.5rem; font-weight: 700; color: #F8F4EC; }
+      .admin-sidebar__logo-sub { font-size: 0.7rem; color: #B8954A; letter-spacing: 0.3em; text-transform: uppercase; }
+      .admin-sidebar__nav { flex: 1; padding: 16px; display: flex; flex-direction: column; gap: 4px; overflow-y: auto; }
+      .admin-nav-link { display: flex; align-items: center; gap: 12px; padding: 10px 14px; color: rgba(248,244,236,0.7); text-decoration: none; border-radius: 8px; font-size: 0.875rem; font-weight: 500; transition: all 0.15s ease; }
+      .admin-nav-link:hover { color: #F8F4EC; background-color: rgba(255,255,255,0.05); }
+      .admin-nav-link.is-active { color: #F8F4EC; background-color: #6B1F2E; }
+      .admin-nav-link--danger:hover { background-color: rgba(179,58,58,0.2); color: #ff6b6b; }
+      .admin-sidebar__footer { padding: 16px; border-top: 1px solid rgba(255,255,255,0.1); display: flex; flex-direction: column; gap: 4px; }
+      .admin-main { flex: 1; margin-left: 240px; display: flex; flex-direction: column; min-height: 100vh; }
+      .admin-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 32px; background-color: #fff; border-bottom: 1px solid #D9CFC0; position: sticky; top: 0; z-index: 50; }
+      .admin-header__toggle { display: none; background: none; border: none; cursor: pointer; color: #2B2B2B; }
+      .admin-header__title { font-size: 1.25rem; font-weight: 600; margin: 0; }
+      .admin-header__user-email { font-size: 0.875rem; color: #4A4A4A; }
+      .admin-content { padding: 32px; flex: 1; }
+      .admin-card { background-color: #fff; border: 1px solid #D9CFC0; border-radius: 12px; padding: 24px; margin-bottom: 24px; }
+      .admin-card__header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+      .admin-card__title { font-size: 1.125rem; font-weight: 600; margin: 0; }
+      .admin-table { width: 100%; border-collapse: collapse; }
+      .admin-table th { text-align: left; padding: 12px; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: #4A4A4A; border-bottom: 1px solid #D9CFC0; }
+      .admin-table td { padding: 12px; border-bottom: 1px solid #D9CFC0; font-size: 0.875rem; }
+      .admin-table tr:hover td { background-color: rgba(0,0,0,0.02); }
+      .admin-form-group { margin-bottom: 16px; }
+      .admin-form-label { display: block; font-size: 0.875rem; font-weight: 500; margin-bottom: 8px; }
+      .admin-form-input, .admin-form-textarea, .admin-form-select { width: 100%; padding: 8px 12px; font-family: 'Inter', sans-serif; font-size: 0.875rem; border: 1px solid #D9CFC0; border-radius: 8px; background-color: #fff; }
+      .admin-form-textarea { min-height: 100px; resize: vertical; }
+      .admin-btn { display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; font-size: 0.875rem; font-weight: 500; border: none; border-radius: 8px; cursor: pointer; text-decoration: none; transition: all 0.15s ease; }
+      .admin-btn--primary { background-color: #6B1F2E; color: #F8F4EC; }
+      .admin-btn--primary:hover { background-color: #4A1520; }
+      .admin-btn--secondary { background-color: #EDE5D6; color: #2B2B2B; }
+      .admin-btn--danger { background-color: #B33A3A; color: #fff; }
+      .admin-btn--ghost { background-color: transparent; color: #4A4A4A; }
+      .admin-btn--ghost:hover { background-color: #EDE5D6; }
+      .admin-badge { display: inline-block; padding: 2px 8px; font-size: 0.75rem; border-radius: 9999px; font-weight: 500; }
+      .admin-badge--published { background-color: rgba(45,122,79,0.1); color: #2D7A4F; }
+      .admin-badge--draft { background-color: rgba(179,58,58,0.1); color: #B33A3A; }
+      .admin-badge--new { background-color: rgba(184,149,74,0.15); color: #B8954A; }
+      .admin-form-row { display: grid; grid-template-columns: 1fr; gap: 16px; }
+      @media (min-width: 768px) { .admin-form-row { grid-template-columns: repeat(3, 1fr); } }
+      .admin-form-actions { display: flex; gap: 12px; margin-top: 24px; }
+      @media (max-width: 768px) {
+        .admin-sidebar { transform: translateX(-100%); }
+        .admin-sidebar.is-open { transform: translateX(0); }
+        .admin-main { margin-left: 0; }
+        .admin-header__toggle { display: block; }
+      }
+    </style>
+  </body>
+</html>
