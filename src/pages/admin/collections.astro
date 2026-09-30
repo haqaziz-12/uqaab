@@ -1,0 +1,171 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import Icon from '../../components/ui/Icon.astro';
+import { createPublicServerClient } from '../../lib/supabase-server';
+
+const client = createPublicServerClient();
+const { data: collections } = await client.from('collections').select('*').order('sort_order', { ascending: true });
+
+const seo = { title: 'Collections — Admin', description: '', canonical: '' };
+---
+
+<AdminLayout seo={seo} title="Collections" activePage="collections" user={Astro.locals.user}>
+  <div class="admin-card">
+    <div class="admin-card__header">
+      <h2 class="admin-card__title">Collections ({collections?.length || 0})</h2>
+      <button class="admin-btn admin-btn--primary" id="add-btn">
+        <Icon name="plus" size={16} /> Add Collection
+      </button>
+    </div>
+
+    <div id="collection-list">
+      {collections?.map((col) => (
+        <div class="collection-edit-item" data-id={col.id}>
+          <div class="collection-edit-item__fields">
+            <div class="admin-form-row">
+              <div class="admin-form-group">
+                <label class="admin-form-label">Name</label>
+                <input type="text" class="admin-form-input col-name" value={col.name} />
+              </div>
+              <div class="admin-form-group">
+                <label class="admin-form-label">Slug</label>
+                <input type="text" class="admin-form-input col-slug" value={col.slug} />
+              </div>
+              <div class="admin-form-group">
+                <label class="admin-form-label">Sort Order</label>
+                <input type="number" class="admin-form-input col-sort" value={col.sort_order} style="width:80px;" />
+              </div>
+              <div class="admin-form-group">
+                <label class="admin-form-label">Status</label>
+                <select class="admin-form-select col-status">
+                  <option value="published" selected={col.status === 'published'}>Published</option>
+                  <option value="draft" selected={col.status === 'draft'}>Draft</option>
+                </select>
+              </div>
+            </div>
+            <div class="admin-form-group">
+              <label class="admin-form-label">Description</label>
+              <textarea class="admin-form-textarea col-desc">{col.description || ''}</textarea>
+            </div>
+            <div class="admin-form-group">
+              <label class="admin-form-label">Image URL</label>
+              <input type="url" class="admin-form-input col-image" value={col.image_url || ''} placeholder="Leave empty for placeholder" />
+            </div>
+            <div class="admin-form-group">
+              <label class="admin-form-label">Image Alt Text</label>
+              <input type="text" class="admin-form-input col-image-alt" value={col.image_alt || ''} />
+            </div>
+            <div style="display:flex;gap:8px;margin-top:12px;">
+              <button class="admin-btn admin-btn--primary col-save">Save</button>
+              <button class="admin-btn admin-btn--danger col-delete">Delete</button>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+
+    <div id="new-collection-form" style="display:none;" class="collection-edit-item">
+      <div class="collection-edit-item__fields">
+        <div class="admin-form-row">
+          <div class="admin-form-group">
+            <label class="admin-form-label">Name</label>
+            <input type="text" class="admin-form-input col-name" />
+          </div>
+          <div class="admin-form-group">
+            <label class="admin-form-label">Slug</label>
+            <input type="text" class="admin-form-input col-slug" placeholder="e.g. heritage" />
+          </div>
+          <div class="admin-form-group">
+            <label class="admin-form-label">Sort Order</label>
+            <input type="number" class="admin-form-input col-sort" value="99" style="width:80px;" />
+          </div>
+          <div class="admin-form-group">
+            <label class="admin-form-label">Status</label>
+            <select class="admin-form-select col-status">
+              <option value="published">Published</option>
+              <option value="draft">Draft</option>
+            </select>
+          </div>
+        </div>
+        <div class="admin-form-group">
+          <label class="admin-form-label">Description</label>
+          <textarea class="admin-form-textarea col-desc"></textarea>
+        </div>
+        <div class="admin-form-group">
+          <label class="admin-form-label">Image URL</label>
+          <input type="url" class="admin-form-input col-image" placeholder="Leave empty for placeholder" />
+        </div>
+        <div style="display:flex;gap:8px;margin-top:12px;">
+          <button class="admin-btn admin-btn--primary col-create">Create</button>
+          <button class="admin-btn admin-btn--ghost col-cancel">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</AdminLayout>
+
+<script>
+  const addBtn = document.getElementById('add-btn');
+  const newForm = document.getElementById('new-collection-form');
+
+  addBtn?.addEventListener('click', () => { if (newForm) newForm.style.display = 'block'; });
+  document.querySelector('.col-cancel')?.addEventListener('click', () => { if (newForm) newForm.style.display = 'none'; });
+
+  document.querySelector('.col-create')?.addEventListener('click', async () => {
+    const data = {
+      name: newForm.querySelector('.col-name').value,
+      slug: newForm.querySelector('.col-slug').value,
+      description: newForm.querySelector('.col-desc').value || null,
+      image_url: newForm.querySelector('.col-image').value || null,
+      sort_order: parseInt(newForm.querySelector('.col-sort').value) || 0,
+      status: newForm.querySelector('.col-status').value,
+    };
+    const res = await fetch('/api/admin/collection', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    if (res.ok) location.reload();
+    else { const r = await res.json(); alert(r.error || 'Failed'); }
+  });
+
+  document.querySelectorAll('.col-save').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const c = btn.closest('.collection-edit-item');
+      const id = c.dataset.id;
+      const data = {
+        name: c.querySelector('.col-name').value,
+        slug: c.querySelector('.col-slug').value,
+        description: c.querySelector('.col-desc').value || null,
+        image_url: c.querySelector('.col-image').value || null,
+        image_alt: c.querySelector('.col-image-alt').value || null,
+        sort_order: parseInt(c.querySelector('.col-sort').value) || 0,
+        status: c.querySelector('.col-status').value,
+      };
+      const res = await fetch(`/api/admin/collection/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      if (res.ok) alert('Saved!');
+      else { const r = await res.json(); alert(r.error || 'Failed'); }
+    });
+  });
+
+  document.querySelectorAll('.col-delete').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      if (!confirm('Delete this collection?')) return;
+      const c = btn.closest('.collection-edit-item');
+      const id = c.dataset.id;
+      const res = await fetch(`/api/admin/collection/${id}`, { method: 'DELETE' });
+      if (res.ok) location.reload();
+      else alert('Failed to delete.');
+    });
+  });
+</script>
+
+<style>
+  .collection-edit-item { border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: var(--space-4); margin-bottom: var(--space-4); }
+  .admin-form-row { display: grid; grid-template-columns: 1fr; gap: var(--space-4); }
+  @media (min-width: 768px) { .admin-form-row { grid-template-columns: repeat(4, 1fr); } }
+</style>
