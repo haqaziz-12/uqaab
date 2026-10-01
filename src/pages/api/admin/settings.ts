@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { createServerClient } from '../../../../lib/supabase-server';
+import { createServerClient } from '../../../lib/supabase-server';
 
 export const PUT: APIRoute = async ({ request }) => {
   const client = createServerClient();
