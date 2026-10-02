@@ -6,9 +6,9 @@
   "description": "UQAAB CARPET — Handmade Afghan Carpets | Supabase-powered enterprise website",
   "scripts": {
     "dev": "astro dev",
-    "build": "astro build",
+    "build": "astro build && echo _worker.js > dist/.assetsignore",
     "preview": "wrangler dev",
-    "deploy": "astro build && wrangler deploy",
+    "deploy": "astro build && echo _worker.js > dist/.assetsignore && wrangler deploy",
     "astro": "astro"
   },
   "dependencies": {
