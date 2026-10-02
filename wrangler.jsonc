@@ -1,13 +1,10 @@
 {
-  "name": "uqaab-carpet",
+  "name": "uqaabcarpets",
   "compatibility_date": "2026-09-29",
   "compatibility_flags": ["nodejs_compat"],
   "main": "./dist/_worker.js",
   "assets": {
     "directory": "./dist",
     "binding": "ASSETS"
-  },
-  "vars": {
-    "PUBLIC_SITE_URL": "https://uqaabcarpet.com"
   }
 }
