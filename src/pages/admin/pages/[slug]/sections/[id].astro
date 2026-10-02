@@ -37,7 +37,7 @@ const sectionTypes = [
       </a>
     </div>
 
-    <form id="section-form" data-id={id} data-slug={slug}>
+    <form id="section-form" data-id={id} data-slug={slug} data-is-new={isNew ? 'true' : 'false'}>
       <div class="admin-form-group">
         <label class="admin-form-label" for="section_type">Section Type</label>
         <select id="section_type" name="section_type" class="admin-form-select">
@@ -91,7 +91,7 @@ const sectionTypes = [
       <div class="admin-form-group">
         <label class="admin-form-label" for="content_json">Content JSON (for card_grid, stat_band)</label>
         <textarea id="content_json" name="content_json" class="admin-form-textarea" rows="4">{section.content_json ? JSON.stringify(section.content_json, null, 2) : ''}</textarea>
-        <p style="font-size:0.75rem;color:var(--color-charcoal-soft);margin-top:4px;">JSON format for cards: {"cards": [{"title": "...", "description": "..."}]}</p>
+        <p style="font-size:0.75rem;color:var(--color-charcoal-soft);margin-top:4px;">Use JSON format for cards and stats.</p>
       </div>
 
       <div class="admin-form-row">
@@ -122,68 +122,68 @@ const sectionTypes = [
         <a href={`/admin/pages/${slug}/sections`} class="admin-btn admin-btn--ghost">Cancel</a>
       </div>
     </form>
-
     <div id="form-message" role="status" aria-live="polite"></div>
   </div>
 </AdminLayout>
 
-<script define:vars={{ id, slug, isNew }}>
+<script>
   const form = document.getElementById('section-form');
   const saveBtn = document.getElementById('save-btn');
   const message = document.getElementById('form-message');
 
-  form?.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    saveBtn.disabled = true;
-    saveBtn.textContent = 'Saving...';
+  if (form) {
+    const id = form.dataset.id;
+    const slug = form.dataset.slug;
+    const isNew = form.dataset.isNew === 'true';
 
-    let contentJson = {};
-    const jsonStr = document.getElementById('content_json').value;
-    if (jsonStr.trim()) {
-      try { contentJson = JSON.parse(jsonStr); }
-      catch { message.innerHTML = '<p style="color:var(--color-error);">Invalid JSON in Content JSON field.</p>'; saveBtn.disabled = false; saveBtn.textContent = isNew ? 'Create Section' : 'Save Changes'; return; }
-    }
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      saveBtn.disabled = true;
+      saveBtn.textContent = 'Saving...';
 
-    const data = {
-      page_slug: slug,
-      section_type: document.getElementById('section_type').value,
-      heading: document.getElementById('heading').value || null,
-      subheading: document.getElementById('subheading').value || null,
-      body: document.getElementById('body').value || null,
-      image_url: document.getElementById('image_url').value || null,
-      image_alt: document.getElementById('image_alt').value || null,
-      image_caption: document.getElementById('image_caption').value || null,
-      link_label: document.getElementById('link_label').value || null,
-      link_url: document.getElementById('link_url').value || null,
-      content_json: contentJson,
-      sort_order: parseInt(document.getElementById('sort_order').value) || 0,
-      visible: document.getElementById('visible').value === 'true',
-      status: document.getElementById('status').value,
-    };
-
-    try {
-      const url = isNew ? '/api/admin/section' : `/api/admin/section/${id}`;
-      const method = isNew ? 'POST' : 'PUT';
-      const res = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      });
-      const result = await res.json();
-
-      if (result.success) {
-        message.innerHTML = '<p style="color:var(--color-success);padding:8px;">✓ Saved successfully.</p>';
-        if (isNew) setTimeout(() => location.href = `/admin/pages/${slug}/sections`, 1000);
-      } else {
-        message.innerHTML = `<p style="color:var(--color-error);padding:8px;">Error: ${result.error || 'Failed to save.'}</p>`;
+      let contentJson = {};
+      const jsonStr = document.getElementById('content_json').value;
+      if (jsonStr.trim()) {
+        try { contentJson = JSON.parse(jsonStr); }
+        catch { message.innerHTML = '<p style="color:var(--color-error);">Invalid JSON.</p>'; saveBtn.disabled = false; saveBtn.textContent = isNew ? 'Create Section' : 'Save Changes'; return; }
       }
-    } catch {
-      message.innerHTML = '<p style="color:var(--color-error);padding:8px;">Network error.</p>';
-    } finally {
-      saveBtn.disabled = false;
-      saveBtn.textContent = isNew ? 'Create Section' : 'Save Changes';
-    }
-  });
+
+      const data = {
+        page_slug: slug,
+        section_type: document.getElementById('section_type').value,
+        heading: document.getElementById('heading').value || null,
+        subheading: document.getElementById('subheading').value || null,
+        body: document.getElementById('body').value || null,
+        image_url: document.getElementById('image_url').value || null,
+        image_alt: document.getElementById('image_alt').value || null,
+        image_caption: document.getElementById('image_caption').value || null,
+        link_label: document.getElementById('link_label').value || null,
+        link_url: document.getElementById('link_url').value || null,
+        content_json: contentJson,
+        sort_order: parseInt(document.getElementById('sort_order').value) || 0,
+        visible: document.getElementById('visible').value === 'true',
+        status: document.getElementById('status').value,
+      };
+
+      try {
+        const url = isNew ? '/api/admin/section' : '/api/admin/section/' + id;
+        const method = isNew ? 'POST' : 'PUT';
+        const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+        const result = await res.json();
+        if (result.success) {
+          message.innerHTML = '<p style="color:var(--color-success);padding:8px;">Saved successfully.</p>';
+          if (isNew) setTimeout(() => location.href = '/admin/pages/' + slug + '/sections', 1000);
+        } else {
+          message.innerHTML = '<p style="color:var(--color-error);padding:8px;">Error: ' + (result.error || 'Failed.') + '</p>';
+        }
+      } catch {
+        message.innerHTML = '<p style="color:var(--color-error);padding:8px;">Network error.</p>';
+      } finally {
+        saveBtn.disabled = false;
+        saveBtn.textContent = isNew ? 'Create Section' : 'Save Changes';
+      }
+    });
+  }
 </script>
 
 <style>
