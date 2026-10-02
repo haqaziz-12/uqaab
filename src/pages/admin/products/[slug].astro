@@ -7,9 +7,7 @@ const { slug } = Astro.params;
 const client = createPublicServerClient();
 const { data: product } = await client.from('products').select('*').eq('slug', slug).single();
 const { data: collections } = await client.from('collections').select('name').eq('status', 'published').order('name');
-
 if (!product) return Astro.redirect('/admin/products');
-
 const seo = { title: `Edit: ${product.name} — Admin`, description: '', canonical: '' };
 ---
 
@@ -17,9 +15,7 @@ const seo = { title: `Edit: ${product.name} — Admin`, description: '', canonic
   <div class="admin-card">
     <div class="admin-card__header">
       <h2 class="admin-card__title">Edit Product</h2>
-      <a href="/admin/products" class="admin-btn admin-btn--ghost">
-        <Icon name="arrow-left" size={16} /> Back
-      </a>
+      <a href="/admin/products" class="admin-btn admin-btn--ghost"><Icon name="arrow-left" size={16} /> Back</a>
     </div>
 
     <form id="product-form" data-slug={slug}>
@@ -37,15 +33,12 @@ const seo = { title: `Edit: ${product.name} — Admin`, description: '', canonic
           <input type="text" id="name" class="admin-form-input" value={product.name} required />
         </div>
       </div>
-
       <div class="admin-form-row">
         <div class="admin-form-group">
           <label class="admin-form-label" for="collection_type">Collection Type</label>
           <select id="collection_type" class="admin-form-select">
             <option value="">— Select —</option>
-            {collections?.map((c) => (
-              <option value={c.name} selected={product.collection_type === c.name}>{c.name}</option>
-            ))}
+            {collections?.map((c) => <option value={c.name} selected={product.collection_type === c.name}>{c.name}</option>)}
           </select>
         </div>
         <div class="admin-form-group">
@@ -57,7 +50,6 @@ const seo = { title: `Edit: ${product.name} — Admin`, description: '', canonic
           <input type="text" id="country_origin" class="admin-form-input" value={product.country_origin} />
         </div>
       </div>
-
       <div class="admin-form-row">
         <div class="admin-form-group">
           <label class="admin-form-label" for="size">Size</label>
@@ -76,17 +68,12 @@ const seo = { title: `Edit: ${product.name} — Admin`, description: '', canonic
           <input type="text" id="pile_type" class="admin-form-input" value={product.pile_type || ''} />
         </div>
       </div>
-
       <div class="admin-form-group">
         <label class="admin-form-label" for="description">Description</label>
         <textarea id="description" class="admin-form-textarea" rows="4">{product.description || ''}</textarea>
       </div>
-
       <h3 style="margin-top: 24px; margin-bottom: 16px;">Product Images</h3>
-      <p style="font-size:0.875rem;color:var(--color-charcoal-soft);margin-bottom:16px;">
-        Each image slot is independent. Leave empty for solid-color placeholder.
-      </p>
-
+      <p style="font-size:0.875rem;color:var(--color-charcoal-soft);margin-bottom:16px;">Each image slot is independent. Leave empty for solid-color placeholder.</p>
       <div class="admin-form-row">
         <div class="admin-form-group">
           <label class="admin-form-label">Front View Image URL</label>
@@ -107,7 +94,6 @@ const seo = { title: `Edit: ${product.name} — Admin`, description: '', canonic
           <input type="text" id="image_closeup_alt" class="admin-form-input" value={product.image_closeup_alt || ''} />
         </div>
       </div>
-
       <div class="admin-form-row">
         <div class="admin-form-group">
           <label class="admin-form-label" for="featured">Featured</label>
@@ -128,7 +114,6 @@ const seo = { title: `Edit: ${product.name} — Admin`, description: '', canonic
           </select>
         </div>
       </div>
-
       <div class="admin-form-row">
         <div class="admin-form-group">
           <label class="admin-form-label" for="seo_title">SEO Title</label>
@@ -139,11 +124,8 @@ const seo = { title: `Edit: ${product.name} — Admin`, description: '', canonic
           <textarea id="seo_description" class="admin-form-textarea" rows="2">{product.seo_description || ''}</textarea>
         </div>
       </div>
-
       <div class="admin-form-actions">
-        <button type="submit" class="admin-btn admin-btn--primary" id="save-btn">
-          <Icon name="save" size={16} /> Save Changes
-        </button>
+        <button type="submit" class="admin-btn admin-btn--primary" id="save-btn"><Icon name="save" size={16} /> Save Changes</button>
         <a href="/admin/products" class="admin-btn admin-btn--ghost">Cancel</a>
       </div>
     </form>
@@ -151,59 +133,52 @@ const seo = { title: `Edit: ${product.name} — Admin`, description: '', canonic
   </div>
 </AdminLayout>
 
-<script define:vars={{ slug }}>
+<script>
   const form = document.getElementById('product-form');
   const saveBtn = document.getElementById('save-btn');
   const message = document.getElementById('form-message');
-
-  form?.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    saveBtn.disabled = true;
-    saveBtn.textContent = 'Saving...';
-
-    const data = {
-      slug: document.getElementById('slug').value,
-      name: document.getElementById('name').value,
-      collection_type: document.getElementById('collection_type').value || null,
-      category: document.getElementById('category').value || null,
-      size: document.getElementById('size').value || null,
-      quality: document.getElementById('quality').value || null,
-      material: document.getElementById('material').value || null,
-      pile_type: document.getElementById('pile_type').value || null,
-      description: document.getElementById('description').value || null,
-      country_origin: document.getElementById('country_origin').value || 'Afghanistan',
-      image_front: document.getElementById('image_front').value || null,
-      image_back: document.getElementById('image_back').value || null,
-      image_closeup: document.getElementById('image_closeup').value || null,
-      image_front_alt: document.getElementById('image_front_alt').value || null,
-      image_back_alt: document.getElementById('image_back_alt').value || null,
-      image_closeup_alt: document.getElementById('image_closeup_alt').value || null,
-      featured: document.getElementById('featured').value === 'true',
-      sort_order: parseInt(document.getElementById('sort_order').value) || 0,
-      status: document.getElementById('status').value,
-      seo_title: document.getElementById('seo_title').value || null,
-      seo_description: document.getElementById('seo_description').value || null,
-    };
-
-    try {
-      const res = await fetch(`/api/admin/product/${slug}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      });
-      const result = await res.json();
-      if (result.success) {
-        message.innerHTML = '<p style="color:var(--color-success);padding:8px;">✓ Saved successfully.</p>';
-      } else {
-        message.innerHTML = `<p style="color:var(--color-error);padding:8px;">Error: ${result.error}</p>`;
+  if (form) {
+    const slug = form.dataset.slug;
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      saveBtn.disabled = true;
+      saveBtn.textContent = 'Saving...';
+      const data = {
+        slug: document.getElementById('slug').value,
+        name: document.getElementById('name').value,
+        collection_type: document.getElementById('collection_type').value || null,
+        category: document.getElementById('category').value || null,
+        size: document.getElementById('size').value || null,
+        quality: document.getElementById('quality').value || null,
+        material: document.getElementById('material').value || null,
+        pile_type: document.getElementById('pile_type').value || null,
+        description: document.getElementById('description').value || null,
+        country_origin: document.getElementById('country_origin').value || 'Afghanistan',
+        image_front: document.getElementById('image_front').value || null,
+        image_back: document.getElementById('image_back').value || null,
+        image_closeup: document.getElementById('image_closeup').value || null,
+        image_front_alt: document.getElementById('image_front_alt').value || null,
+        image_back_alt: document.getElementById('image_back_alt').value || null,
+        image_closeup_alt: document.getElementById('image_closeup_alt').value || null,
+        featured: document.getElementById('featured').value === 'true',
+        sort_order: parseInt(document.getElementById('sort_order').value) || 0,
+        status: document.getElementById('status').value,
+        seo_title: document.getElementById('seo_title').value || null,
+        seo_description: document.getElementById('seo_description').value || null,
+      };
+      try {
+        const res = await fetch('/api/admin/product/' + slug, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+        const result = await res.json();
+        if (result.success) message.innerHTML = '<p style="color:var(--color-success);padding:8px;">Saved successfully.</p>';
+        else message.innerHTML = '<p style="color:var(--color-error);padding:8px;">Error: ' + result.error + '</p>';
+      } catch {
+        message.innerHTML = '<p style="color:var(--color-error);padding:8px;">Network error.</p>';
+      } finally {
+        saveBtn.disabled = false;
+        saveBtn.textContent = 'Save Changes';
       }
-    } catch {
-      message.innerHTML = '<p style="color:var(--color-error);padding:8px;">Network error.</p>';
-    } finally {
-      saveBtn.disabled = false;
-      saveBtn.textContent = 'Save Changes';
-    }
-  });
+    });
+  }
 </script>
 
 <style>
