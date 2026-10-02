@@ -10,11 +10,7 @@ const { data: page } = await client.from('pages').select('*').eq('slug', slug).s
 if (!page) return Astro.redirect('/admin/pages');
 
 const seo = { title: 'New Section — Admin', description: '', canonical: '' };
-
-const sectionTypes = [
-  'hero', 'text_block', 'image_text', 'card_grid', 'cta_band',
-  'stat_band', 'faq_list', 'map_embed', 'form_embed', 'export_reach'
-];
+const sectionTypes = ['hero', 'text_block', 'image_text', 'card_grid', 'cta_band', 'stat_band', 'faq_list', 'map_embed', 'form_embed', 'export_reach'];
 
 const { data: existing } = await client.from('page_sections').select('sort_order').eq('page_slug', slug).order('sort_order', { ascending: false }).limit(1);
 const nextSort = (existing && existing[0]?.sort_order || 0) + 1;
@@ -24,144 +20,115 @@ const nextSort = (existing && existing[0]?.sort_order || 0) + 1;
   <div class="admin-card">
     <div class="admin-card__header">
       <h2 class="admin-card__title">Create New Section</h2>
-      <a href={`/admin/pages/${slug}/sections`} class="admin-btn admin-btn--ghost">
-        <Icon name="arrow-left" size={16} /> Back
-      </a>
+      <a href={`/admin/pages/${slug}/sections`} class="admin-btn admin-btn--ghost"><Icon name="arrow-left" size={16} /> Back</a>
     </div>
 
     <form id="section-form" data-slug={slug}>
       <div class="admin-form-group">
         <label class="admin-form-label" for="section_type">Section Type</label>
-        <select id="section_type" name="section_type" class="admin-form-select">
+        <select id="section_type" class="admin-form-select">
           {sectionTypes.map((type) => <option value={type}>{type}</option>)}
         </select>
       </div>
-
       <div class="admin-form-group">
         <label class="admin-form-label" for="heading">Heading</label>
-        <input type="text" id="heading" name="heading" class="admin-form-input" />
+        <input type="text" id="heading" class="admin-form-input" />
       </div>
-
       <div class="admin-form-group">
         <label class="admin-form-label" for="subheading">Subheading</label>
-        <input type="text" id="subheading" name="subheading" class="admin-form-input" />
+        <input type="text" id="subheading" class="admin-form-input" />
       </div>
-
       <div class="admin-form-group">
         <label class="admin-form-label" for="body">Body (rich text)</label>
-        <textarea id="body" name="body" class="admin-form-textarea" rows="6"></textarea>
+        <textarea id="body" class="admin-form-textarea" rows="6"></textarea>
       </div>
-
       <div class="admin-form-group">
         <label class="admin-form-label" for="image_url">Image URL</label>
-        <input type="url" id="image_url" name="image_url" class="admin-form-input" placeholder="Leave empty for solid-color placeholder" />
+        <input type="url" id="image_url" class="admin-form-input" placeholder="Leave empty for solid-color placeholder" />
       </div>
-
       <div class="admin-form-group">
         <label class="admin-form-label" for="image_alt">Image Alt Text</label>
-        <input type="text" id="image_alt" name="image_alt" class="admin-form-input" />
+        <input type="text" id="image_alt" class="admin-form-input" />
       </div>
-
       <div class="admin-form-group">
         <label class="admin-form-label" for="link_label">Button Label</label>
-        <input type="text" id="link_label" name="link_label" class="admin-form-input" />
+        <input type="text" id="link_label" class="admin-form-input" />
       </div>
-
       <div class="admin-form-group">
         <label class="admin-form-label" for="link_url">Button URL</label>
-        <input type="text" id="link_url" name="link_url" class="admin-form-input" />
+        <input type="text" id="link_url" class="admin-form-input" />
       </div>
-
       <div class="admin-form-group">
         <label class="admin-form-label" for="content_json">Content JSON (for card_grid, stat_band)</label>
-        <textarea id="content_json" name="content_json" class="admin-form-textarea" rows="4" placeholder='{"cards": [{"title": "...", "description": "..."}]}'></textarea>
+        <textarea id="content_json" class="admin-form-textarea" rows="4" placeholder="Cards JSON format"></textarea>
       </div>
-
       <div class="admin-form-row">
         <div class="admin-form-group">
           <label class="admin-form-label" for="sort_order">Sort Order</label>
-          <input type="number" id="sort_order" name="sort_order" class="admin-form-input" value={nextSort} />
+          <input type="number" id="sort_order" class="admin-form-input" value={nextSort} />
         </div>
         <div class="admin-form-group">
           <label class="admin-form-label" for="visible">Visible</label>
-          <select id="visible" name="visible" class="admin-form-select">
-            <option value="true" selected>Yes</option>
-            <option value="false">No</option>
-          </select>
+          <select id="visible" class="admin-form-select"><option value="true" selected>Yes</option><option value="false">No</option></select>
         </div>
         <div class="admin-form-group">
           <label class="admin-form-label" for="status">Status</label>
-          <select id="status" name="status" class="admin-form-select">
-            <option value="published" selected>Published</option>
-            <option value="draft">Draft</option>
-          </select>
+          <select id="status" class="admin-form-select"><option value="published" selected>Published</option><option value="draft">Draft</option></select>
         </div>
       </div>
-
       <div class="admin-form-actions">
-        <button type="submit" class="admin-btn admin-btn--primary" id="save-btn">
-          <Icon name="plus" size={16} /> Create Section
-        </button>
+        <button type="submit" class="admin-btn admin-btn--primary" id="save-btn"><Icon name="plus" size={16} /> Create Section</button>
         <a href={`/admin/pages/${slug}/sections`} class="admin-btn admin-btn--ghost">Cancel</a>
       </div>
     </form>
-
     <div id="form-message" role="status" aria-live="polite"></div>
   </div>
 </AdminLayout>
 
-<script define:vars={{ slug }}>
+<script>
   const form = document.getElementById('section-form');
   const saveBtn = document.getElementById('save-btn');
   const message = document.getElementById('form-message');
-
-  form?.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    saveBtn.disabled = true;
-    saveBtn.textContent = 'Creating...';
-
-    let contentJson = {};
-    const jsonStr = document.getElementById('content_json').value;
-    if (jsonStr.trim()) {
-      try { contentJson = JSON.parse(jsonStr); }
-      catch { message.innerHTML = '<p style="color:var(--color-error);">Invalid JSON.</p>'; saveBtn.disabled = false; saveBtn.textContent = 'Create Section'; return; }
-    }
-
-    const data = {
-      page_slug: slug,
-      section_type: document.getElementById('section_type').value,
-      heading: document.getElementById('heading').value || null,
-      subheading: document.getElementById('subheading').value || null,
-      body: document.getElementById('body').value || null,
-      image_url: document.getElementById('image_url').value || null,
-      image_alt: document.getElementById('image_alt').value || null,
-      link_label: document.getElementById('link_label').value || null,
-      link_url: document.getElementById('link_url').value || null,
-      content_json: contentJson,
-      sort_order: parseInt(document.getElementById('sort_order').value) || 0,
-      visible: document.getElementById('visible').value === 'true',
-      status: document.getElementById('status').value,
-    };
-
-    try {
-      const res = await fetch('/api/admin/section', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      });
-      const result = await res.json();
-      if (result.success) {
-        location.href = `/admin/pages/${slug}/sections`;
-      } else {
-        message.innerHTML = `<p style="color:var(--color-error);">Error: ${result.error}</p>`;
+  if (form) {
+    const slug = form.dataset.slug;
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      saveBtn.disabled = true;
+      saveBtn.textContent = 'Creating...';
+      let contentJson = {};
+      const jsonStr = document.getElementById('content_json').value;
+      if (jsonStr.trim()) {
+        try { contentJson = JSON.parse(jsonStr); }
+        catch { message.innerHTML = '<p style="color:var(--color-error);">Invalid JSON.</p>'; saveBtn.disabled = false; saveBtn.textContent = 'Create Section'; return; }
       }
-    } catch {
-      message.innerHTML = '<p style="color:var(--color-error);">Network error.</p>';
-    } finally {
-      saveBtn.disabled = false;
-      saveBtn.textContent = 'Create Section';
-    }
-  });
+      const data = {
+        page_slug: slug,
+        section_type: document.getElementById('section_type').value,
+        heading: document.getElementById('heading').value || null,
+        subheading: document.getElementById('subheading').value || null,
+        body: document.getElementById('body').value || null,
+        image_url: document.getElementById('image_url').value || null,
+        image_alt: document.getElementById('image_alt').value || null,
+        link_label: document.getElementById('link_label').value || null,
+        link_url: document.getElementById('link_url').value || null,
+        content_json: contentJson,
+        sort_order: parseInt(document.getElementById('sort_order').value) || 0,
+        visible: document.getElementById('visible').value === 'true',
+        status: document.getElementById('status').value,
+      };
+      try {
+        const res = await fetch('/api/admin/section', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+        const result = await res.json();
+        if (result.success) location.href = '/admin/pages/' + slug + '/sections';
+        else message.innerHTML = '<p style="color:var(--color-error);">Error: ' + result.error + '</p>';
+      } catch {
+        message.innerHTML = '<p style="color:var(--color-error);">Network error.</p>';
+      } finally {
+        saveBtn.disabled = false;
+        saveBtn.textContent = 'Create Section';
+      }
+    });
+  }
 </script>
 
 <style>
